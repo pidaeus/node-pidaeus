@@ -1,0 +1,26 @@
+{
+    "name": "pidaeus"
+  , "version": "0.0.0"
+  , "description": "Node.js bindings for Raspberry Pi hardware interfaces."
+  , "author": "Jake Luer <jake@alogicalparadox.com> (http://alogicalparadox.com)"
+  , "license": "MIT"
+  , "keywords": [
+    ]
+  , "repository": {
+        "type": "git"
+      , "url": "git@github.com:pidaeus/pidaeus.git"
+    }
+  , "engines": {
+      "node": "*"
+    }
+  , "main": "./index"
+  , "scripts": {
+      "test": "mocha"
+    }
+  , "dependencies": {
+    }
+  , "devDependencies": {
+        "chai": "*"
+      , "mocha": "*"
+    }
+}
