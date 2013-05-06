@@ -1,13 +1,11 @@
 describe('GPIO', function () {
   var GPIO = pidaeus.GPIO;
 
-  describe('getters', function () {
-    it('.INPUT', function () {
-      GPIO.should.have.property('INPUT');
-    });
-
-    it('.OUTPUT', function () {
-      GPIO.should.have.property('OUTPUT');
-    });
+  it('(construct/deconstruct)', function () {
+    var gpio = new GPIO;
+    (function () {
+      gpio.setup();
+      gpio.teardown();
+    }).should.not.throw();
   });
 });

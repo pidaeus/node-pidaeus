@@ -1,9 +1,10 @@
 
 #include "gpio.h"
 
-
 #include <v8.h>
 #include <node.h>
+#include <string.h>
+
 #include <pi.h>
 
 using namespace v8;
@@ -41,8 +42,6 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Getters/Setters)
   // Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
   //proto->SetAccessor(String::NewSymbol("active"), IsSetupGpio);
-  //proto->SetAccessor(String::NewSymbol("INPUT"), GetEnum);
-  //proto->SetAccessor(String::NewSymbol("OUTPUT"), GetEnum);
 
   // Export
   target->Set(String::NewSymbol("GPIO"), constructor->GetFunction());
@@ -55,25 +54,6 @@ GPIO::New(const Arguments &args) {
   self->Wrap(args.This());
   return scope.Close(args.Holder());
 }
-
-/*
-Handle<Value>
-GPIO::GetEnum(Local<String> prop, const AccessorInfo &info) {
-  HandleScope scope;
-  int num;
-
-  switch (prop) {
-    case "INPUT";
-      num = PI_DIR_IN;
-      break;
-    case "OUTPUT"
-      num = PI_DIR_OUT;
-      break;
-  }
-
-  return scope.Close(Number::New(num));
-}
-*/
 
 pi_gpio_direction_t
 PiDirection(const Handle<String> &v8str) {
@@ -102,7 +82,7 @@ GPIO::Teardown(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
-  // release all pins first.
+  // TODO: release all pins first.
   if (self->active) {
     pi_gpio_teardown();
     self->active = 0;
@@ -163,7 +143,7 @@ GPIO::SetPinDirection(const Arguments &args) {
   if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  pi_gpio_direction_t direction = PiDirection(args[1]);
+  pi_gpio_direction_t direction = PiDirection(args[1]->ToString());
   pi_gpio_set_direction(handle, direction);
 
   // TODO: Error checking
