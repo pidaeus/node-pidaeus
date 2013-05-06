@@ -9,7 +9,7 @@
 using namespace v8;
 using namespace node;
 
-#define ERROR(msg) \
+#define JS_ERROR(msg) \
   ThrowExecption(Exception::Error(String::New(msg));
 
 #define TYPE_ERROR(msg) \
@@ -82,7 +82,7 @@ GPIO::Setup(const Arguments &args) {
 
   if (!self->active) {
     int success = pi_gpio_setup();
-    if (success < 0) return ERROR("gpio setup failed: are you root?")
+    if (success < 0) return JS_ERROR("gpio setup failed: are you root?")
     self->active = 1;
   }
 
@@ -113,7 +113,7 @@ GPIO::ClaimPin(const Arguments &args) {
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number")
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (self->pins[gpio]) return ERROR("gpio pin already claimed")
+  if (self->pins[gpio]) return JS_ERROR("gpio pin already claimed")
 
   pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
   self->pins[gpio] = handle;
@@ -131,10 +131,10 @@ GPIO::ReleasePin(const Arguments &args) {
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number")
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed")
+  if (!self->pins[gpio]) return JS_ERROR("gpio pin has not been claimed")
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  int res = pi_gpio_release(handle);
+  pi_gpio_release(handle);
 
   // TODO: Error checking
   return scope.Close(args.Holder());
@@ -152,11 +152,11 @@ GPIO::SetPinDirection(const Arguments &args) {
   if (!args[1]->IsUint32()) return TYPE_ERROR("gpio direction must be a number")
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed")
+  if (!self->pins[gpio]) return JS_ERROR("gpio pin has not been claimed")
 
   pi_gpio_handle_t *handle = self->pins[gpio];
   pi_gpio_direction_t direction = args[1]->Int32Value();
-  pi_gpio_set_direction(gpio, direction);
+  pi_gpio_set_direction(handle, direction);
 
   // TODO: Error checking
   return scope.Close(args.Holder());
