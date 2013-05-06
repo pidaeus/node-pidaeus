@@ -134,7 +134,7 @@ GPIO::ReleasePin(const Arguments &args) {
   if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  int res = pi_gpio_release(handle);
+  pi_gpio_release(handle);
 
   // TODO: Error checking
   return scope.Close(args.Holder());
@@ -156,7 +156,7 @@ GPIO::SetPinDirection(const Arguments &args) {
 
   pi_gpio_handle_t *handle = self->pins[gpio];
   pi_gpio_direction_t direction = args[1]->Int32Value();
-  pi_gpio_set_direction(gpio, direction);
+  pi_gpio_set_direction(handle, direction);
 
   // TODO: Error checking
   return scope.Close(args.Holder());
