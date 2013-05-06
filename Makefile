@@ -4,7 +4,7 @@ LIBPI_V = "0.1.0"
 TESTS = test/*.js
 REPORTER = spec
 
-test:
+test: build/Release/pidaeus.node 
 	@NODE_ENV=test ./node_modules/.bin/mocha \
 		--require ./test/bootstrap \
 		--reporter $(REPORTER) \
@@ -15,6 +15,9 @@ test-cov: lib-cov
 
 lib-cov: clean
 	@jscoverage lib lib-cov
+
+build/Release/pidaeus.node: src/* bindings.gyp
+	@node-gyp rebuild
 
 clean: clean-build clean-cov
 
