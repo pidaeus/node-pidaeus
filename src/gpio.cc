@@ -9,8 +9,8 @@
 using namespace v8;
 using namespace node;
 
-#define JS_ERROR(msg) \
-  ThrowExecption(Exception::Error(String::New(msg));
+#define ERROR(msg) \
+  ThrowException(Exception::Error(String::New(msg));
 
 #define TYPE_ERROR(msg) \
   ThrowException(Exception::TypeError(String::New(msg)));
@@ -39,7 +39,7 @@ GPIO::Initialize(Handle<Object> target) {
   //SetPrototypeMethod(constructor, "write", WritePin);
 
   // Prototype (Getters/Setters)
-  //Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
+  // Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
   //proto->SetAccessor(String::NewSymbol("active"), IsSetupGpio);
   //proto->SetAccessor(String::NewSymbol("INPUT"), GetEnum);
   //proto->SetAccessor(String::NewSymbol("OUTPUT"), GetEnum);
@@ -82,7 +82,7 @@ GPIO::Setup(const Arguments &args) {
 
   if (!self->active) {
     int success = pi_gpio_setup();
-    if (success < 0) return JS_ERROR("gpio setup failed: are you root?")
+    if (success < 0) return ERROR("gpio setup failed: are you root?");
     self->active = 1;
   }
 
@@ -109,11 +109,11 @@ GPIO::ClaimPin(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   int len = args.Length();
-  if (len < 1) return TYPE_ERROR("gpio pin required")
-  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number")
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (self->pins[gpio]) return JS_ERROR("gpio pin already claimed")
+  if (self->pins[gpio]) return ERROR("gpio pin already claimed");
 
   pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
   self->pins[gpio] = handle;
@@ -127,14 +127,14 @@ GPIO::ReleasePin(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   int len = args.Length();
-  if (len < 1) return TYPE_ERROR("gpio pin required")
-  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number")
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (!self->pins[gpio]) return JS_ERROR("gpio pin has not been claimed")
+  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  pi_gpio_release(handle);
+  int res = pi_gpio_release(handle);
 
   // TODO: Error checking
   return scope.Close(args.Holder());
@@ -146,17 +146,17 @@ GPIO::SetPinDirection(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   int len = args.Length();
-  if (len < 1) return TYPE_ERROR("gpio pin required")
-  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number")
-  if (len < 2) return TYPE_ERROR("gpio direction required")
-  if (!args[1]->IsUint32()) return TYPE_ERROR("gpio direction must be a number")
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
+  if (len < 2) return TYPE_ERROR("gpio direction required");
+  if (!args[1]->IsUint32()) return TYPE_ERROR("gpio direction must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (!self->pins[gpio]) return JS_ERROR("gpio pin has not been claimed")
+  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
   pi_gpio_direction_t direction = args[1]->Int32Value();
-  pi_gpio_set_direction(handle, direction);
+  pi_gpio_set_direction(gpio, direction);
 
   // TODO: Error checking
   return scope.Close(args.Holder());
