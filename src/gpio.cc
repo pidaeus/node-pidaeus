@@ -10,7 +10,7 @@ using namespace v8;
 using namespace node;
 
 #define ERROR(msg) \
-  ThrowException(Exception::Error(String::New(msg))
+  ThrowException(Exception::Error(String::New(msg)))
 
 #define TYPE_ERROR(msg) \
   ThrowException(Exception::TypeError(String::New(msg)))
