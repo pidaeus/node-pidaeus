@@ -75,6 +75,14 @@ GPIO::GetEnum(Local<String> prop, const AccessorInfo &info) {
 }
 */
 
+pi_gpio_direction_t
+PiDirection(const Handle<String> &v8str) {
+  String::AsciiValue str(v8str);
+  if (!strcasecmp(*str, "in")) return PI_DIR_IN;
+  if (!strcasecmp(*str, "out")) return PI_DIR_OUT;
+  return PI_DIR_IN;
+}
+
 Handle<Value>
 GPIO::Setup(const Arguments &args) {
   HandleScope scope;
@@ -149,13 +157,13 @@ GPIO::SetPinDirection(const Arguments &args) {
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
   if (len < 2) return TYPE_ERROR("gpio direction required");
-  if (!args[1]->IsUint32()) return TYPE_ERROR("gpio direction must be a number");
+  if (!args[1]->IsString()) return TYPE_ERROR("gpio direction must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  pi_gpio_direction_t direction = args[1]->Int32Value();
+  pi_gpio_direction_t direction = PiDirection(args[1]);
   pi_gpio_set_direction(handle, direction);
 
   // TODO: Error checking
