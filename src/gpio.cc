@@ -27,10 +27,6 @@ GPIO::Initialize(Handle<Object> target) {
   constructor->InstanceTemplate()->SetInternalFieldCount(1);
   constructor->SetClassName(String::NewSymbol("GPIO"));
 
-  // Constructions (Getters/Setters)
-  constructor->SetAccessor(String::NewSymbol("INPUT"), GetEnum);
-  constructor->SetAccessor(String::NewSymbol("OUTPUT"), GetEnum);
-
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
   SetPrototypeMethod(constructor, "teardown", Teardown);
@@ -44,7 +40,9 @@ GPIO::Initialize(Handle<Object> target) {
 
   // Prototype (Getters/Setters)
   Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
-  proto->SetAccessor(String::NewSymbol("active"), IsSetupGpio);
+  //proto->SetAccessor(String::NewSymbol("active"), IsSetupGpio);
+  //proto->SetAccessor(String::NewSymbol("INPUT"), GetEnum);
+  //proto->SetAccessor(String::NewSymbol("OUTPUT"), GetEnum);
 
   // Export
   target->Set(String::NewSymbol("GPIO"), constructor->GetFunction());
@@ -58,6 +56,7 @@ GPIO::New(const Arguments &args) {
   return scope.Close(args.Holder());
 }
 
+/*
 Handle<Value>
 GPIO::GetEnum(Local<String> prop, const AccessorInfo &info) {
   HandleScope scope;
@@ -73,7 +72,8 @@ GPIO::GetEnum(Local<String> prop, const AccessorInfo &info) {
   }
 
   return scope.Close(Number::New(num));
-}e
+}
+*/
 
 Handle<Value>
 GPIO::Setup(const Arguments &args) {

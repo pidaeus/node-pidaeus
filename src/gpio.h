@@ -14,13 +14,12 @@ using namespace node;
 class GPIO: public ObjectWrap {
   public:
     static void Initialize(Handle<Object> target);
+    pi_gpio_handle_t *pins[PI_MAX_PINS];
+    int active;
 
   private:
     GPIO ();
     ~GPIO ();
-
-    pi_gpio_pin_t pins[PI_MAX_PINS];
-    int active;
 
     static Persistent<FunctionTemplate> constructor;
     static Handle<Value> New(const Arguments &args);
