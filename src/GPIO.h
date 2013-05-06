@@ -4,8 +4,9 @@
 
 #include <v8.h>
 #include <node.h>
+#include <pi.h>
 
-#define PI_MAX_PINS = 31
+#define PI_MAX_PINS 31
 
 using namespace v8;
 using namespace node;
@@ -33,6 +34,6 @@ class GPIO: public ObjectWrap {
     //static Handle<Value> SetPinPull(const Arguments &args);
     //static Handle<Value> ReadPin(const Arguments &args);
     //static Handle<Value> WritePin(const Arguments &args);
-}
+};
 
 #endif

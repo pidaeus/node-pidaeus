@@ -1,5 +1,5 @@
 
-#include "GPIO.h"
+#include "gpio.h"
 
 extern "C" void
 init (Handle<Object> target) {

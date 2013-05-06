@@ -1,5 +1,5 @@
 
-#include "GPIO.h"
+#include "gpio.h"
 
 #include <v8.h>
 #include <node.h>
@@ -7,7 +7,6 @@
 
 using namespace v8;
 using namespace node;
-using namespace pi;
 
 #define ERROR(msg) \
   ThrowExecption(Exception::Error(String::New(msg));
