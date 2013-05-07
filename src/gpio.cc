@@ -84,7 +84,7 @@ GPIO::Teardown(const Arguments &args) {
 
   if (self->active) {
     for (int i = 0; i < PI_MAX_PINS; i++) {
-      if (self->pins[i] !== null) {
+      if (self->pins[i] !== NULL) {
         pi_gpio_release(self->pins[i]);
         self->pins[i] = NULL;
       }
