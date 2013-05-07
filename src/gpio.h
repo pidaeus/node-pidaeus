@@ -23,9 +23,9 @@ class GPIO: public ObjectWrap {
 
     static Persistent<FunctionTemplate> constructor;
     static Handle<Value> New(const Arguments &args);
-    static Handle<Value> GetEnum(Local<String> prop, const AccessorInfo &info);
     static Handle<Value> Setup(const Arguments &args);
     static Handle<Value> Teardown(const Arguments &args);
+    static Handle<Value> PinStat(const Arguments &args);
     static Handle<Value> ClaimPin(const Arguments &args);
     static Handle<Value> ReleasePin(const Arguments &args);
     static Handle<Value> SetPinDirection(const Arguments &args);

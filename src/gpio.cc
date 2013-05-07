@@ -31,6 +31,7 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
   SetPrototypeMethod(constructor, "teardown", Teardown);
+  SetPrototypeMethod(constructor, "stat", PinStat);
   SetPrototypeMethod(constructor, "claim", ClaimPin);
   SetPrototypeMethod(constructor, "release", ReleasePin);
   SetPrototypeMethod(constructor, "setDirection", SetPinDirection);
@@ -41,7 +42,6 @@ GPIO::Initialize(Handle<Object> target) {
 
   // Prototype (Getters/Setters)
   // Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
-  //proto->SetAccessor(String::NewSymbol("active"), IsSetupGpio);
 
   // Export
   target->Set(String::NewSymbol("GPIO"), constructor->GetFunction());
@@ -102,12 +102,42 @@ GPIO::ClaimPin(const Arguments &args) {
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   if (self->pins[gpio] != NULL) return ERROR("gpio pin already claimed");
-
-  pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
-  self->pins[gpio] = handle;
+  self->pins[gpio] = pi_gpio_claim(gpio);
 
   return scope.Close(args.Holder());
 }
+
+Handle<Value>
+GPIO::PinStat(const Arguments &args) {
+  HandleScope scope;
+  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+
+  int len = args.Length();
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
+
+  Handle<ObjectTemplate> res = ObjectTemplate::New();
+  pi_gpio_pin_t gpio = args[0]->Int32Value();
+  bool exist = self->pins[gpio] == NULL ? false : true;
+
+  res->Set(String::New("claimed"), Boolean::New(exist));
+
+  return scope.Close(res);
+}
+
+/*
+char *get(v8::Local<v8::Value> value, const char *fallback = "") {
+  if (value->IsString()) {
+      v8::String::AsciiValue string(value);
+      char *str = (char *) malloc(string.length() + 1);
+      strcpy(str, *string);
+      return str;
+  }
+  char *str = (char *) malloc(strlen(fallback) + 1);
+  strcpy(str, fallback);
+  return str;
+}
+*/
 
 Handle<Value>
 GPIO::ReleasePin(const Arguments &args) {
@@ -152,9 +182,6 @@ GPIO::SetPinDirection(const Arguments &args) {
 
 GPIO::GPIO () {
   active = 0;
-  for (size_t i = 1; i < PI_MAX_PINS; i++) {
-    pins[i] = NULL;
-  }
 };
 
 GPIO::~GPIO() {};
