@@ -83,6 +83,13 @@ GPIO::Teardown(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   if (self->active) {
+    for (int i = 0; i < PI_MAX_PINS; i++) {
+      if (self->pins[i] !== null) {
+        pi_gpio_release(self->pins[i]);
+        self->pins[i] = NULL;
+      }
+    }
+
     pi_gpio_teardown();
     self->active = 0;
   }
