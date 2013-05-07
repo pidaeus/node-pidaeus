@@ -83,14 +83,6 @@ GPIO::Teardown(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   if (self->active) {
-    size_t i;
-    for (i = 0; i < PI_MAX_PINS; i++) {
-      if (self->pins[i] != NULL) {
-        pi_gpio_release(self->pins[i]);
-        self->pins[i] = NULL;
-      }
-    }
-
     pi_gpio_teardown();
     self->active = 0;
   }
@@ -109,7 +101,9 @@ GPIO::ClaimPin(const Arguments &args) {
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   if (self->pins[gpio] != NULL) return ERROR("gpio pin already claimed");
-  self->pins[gpio] = pi_gpio_claim(gpio);
+
+  pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
+  self->pins[gpio] = handle;
 
   return scope.Close(args.Holder());
 }
