@@ -39,19 +39,32 @@ describe('GPIO', function () {
   });
 
   describe('.stat(pin)', function () {
-    it('should return an object', function () {
-      var gpio = new GPIO;
-      gpio.stat(GPIO_PIN).should.be.an('object');
+    it('should return valid object for unclaimed pin', function () {
+      var gpio = new GPIO
+        , stat = gpio.stat(GPIO_PIN);
+      should.exist(stat);
+      stat.should.be.an('object');
+      stat.should.have.property('pin')
+        .a('number').equal(GPIO_PIN);
+      stat.should.have.property('claimed')
+        .a('boolean').equal(false);
     });
 
     it('should return claim status', function () {
-      var gpio = new GPIO;
+      var gpio = new GPIO
+        , stat;
       gpio.setup();
-      gpio.stat(GPIO_PIN).should.have.property('claimed', false);
       gpio.claim(GPIO_PIN);
-      gpio.stat(GPIO_PIN).should.have.property('claimed', true);
+      stat = gpio.stat(GPIO_PIN);
+
+      should.exist(stat);
+      stat.should.be.an('object');
+      stat.should.have.property('pin')
+        .a('number').equal(GPIO_PIN);
+      stat.should.have.property('claimed')
+        .a('boolean').equal(true);
+
       gpio.release(GPIO_PIN);
-      gpio.stat(GPIO_PIN).should.have.property('claimed', false);
       gpio.teardown();
     });
   });
