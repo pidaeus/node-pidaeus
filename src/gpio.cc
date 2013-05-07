@@ -101,7 +101,7 @@ GPIO::ClaimPin(const Arguments &args) {
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (self->pins[gpio] != -1) return ERROR("gpio pin already claimed");
+  if (self->pins[gpio] != NULL) return ERROR("gpio pin already claimed");
 
   pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
   self->pins[gpio] = handle;
@@ -153,7 +153,7 @@ GPIO::SetPinDirection(const Arguments &args) {
 GPIO::GPIO () {
   active = 0;
   for (size_t i = 1; i < PI_MAX_PINS; i++) {
-    pins[i] = -1;
+    pins[i] = NULL;
   }
 };
 
