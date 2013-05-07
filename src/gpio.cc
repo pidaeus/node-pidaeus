@@ -154,6 +154,7 @@ GPIO::ReleasePin(const Arguments &args) {
 
   pi_gpio_handle_t *handle = self->pins[gpio];
   pi_gpio_release(handle);
+  self->pins[gpio] = NULL;
 
   // TODO: Error checking
   return scope.Close(args.Holder());

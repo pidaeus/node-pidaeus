@@ -49,8 +49,9 @@ describe('GPIO', function () {
       gpio.setup();
       gpio.stat(GPIO_PIN).should.have.property('claimed', false);
       gpio.claim(GPIO_PIN);
-      gpio.stat(GPIO_PIN).should.have.proeprty('claimed', true);
+      gpio.stat(GPIO_PIN).should.have.property('claimed', true);
       gpio.release(GPIO_PIN);
+      gpio.stat(GPIO_PIN).should.have.property('claimed', false);
       gpio.teardown();
     });
   });
