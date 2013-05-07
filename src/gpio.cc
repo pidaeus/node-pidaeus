@@ -101,7 +101,7 @@ GPIO::ClaimPin(const Arguments &args) {
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (self->pins[gpio]) return ERROR("gpio pin already claimed");
+  if (self->pins[gpio] != NULL) return ERROR("gpio pin already claimed");
 
   pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
   self->pins[gpio] = handle;
@@ -119,7 +119,7 @@ GPIO::ReleasePin(const Arguments &args) {
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
+  if (self->pins[gpio] == NULL) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
   pi_gpio_release(handle);
