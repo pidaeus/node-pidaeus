@@ -116,7 +116,7 @@ GPIO::PinStat(const Arguments &args) {
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
-  Handle<ObjectTemplate> res = ObjectTemplate::New();
+  Local<Object> res = Object::New();
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   bool exist = self->pins[gpio] == NULL ? false : true;
 
