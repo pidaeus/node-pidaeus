@@ -121,6 +121,7 @@ GPIO::PinStat(const Arguments &args) {
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   bool exist = self->pins[gpio] == NULL ? false : true;
 
+  res->Set(String::New("pin"), Number::New(gpio));
   res->Set(String::New("claimed"), Boolean::New(exist));
 
   return scope.Close(res);
@@ -184,6 +185,7 @@ GPIO::SetPinDirection(const Arguments &args) {
 
 GPIO::GPIO () {
   active = 0;
+
   for (int i = 0; i < PI_MAX_PINS; i++) {
     pins[i] = NULL;
   }
