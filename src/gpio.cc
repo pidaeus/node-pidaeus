@@ -183,6 +183,9 @@ GPIO::SetPinDirection(const Arguments &args) {
 
 GPIO::GPIO () {
   active = 0;
+  for (int i = 0; i < PI_MAX_PINS; i++) {
+    pins[i] = NULL;
+  }
 };
 
 GPIO::~GPIO() {};
