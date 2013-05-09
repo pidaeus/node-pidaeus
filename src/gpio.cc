@@ -77,6 +77,7 @@ Handle<Value>
 GPIO::Setup(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+
   uv_work_t req;
   req.data = self;
 
@@ -87,7 +88,7 @@ GPIO::Setup(const Arguments &args) {
     (uv_after_work_cb)SetupAfter
   );
 
-  return scope.Close(Undefined());
+  return Undefined();
 }
 
 void
@@ -108,7 +109,7 @@ GPIO::SetupWork(uv_work_t *req) {
 }
 
 void
-GPIO::SetupAfter(uv_work_t *req) {
+GPIO::SetupAfter(uv_work_t *req, int status) {
   GPIO* self = static_cast<GPIO*>(req->data);
   <Local>Value argv[1] = {
     String::new("ready")
