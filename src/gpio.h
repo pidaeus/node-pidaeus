@@ -44,6 +44,6 @@ struct Baton {
   uv_work_t req;
   Handle<Object> object;
   GPIO* self;
-}
+};
 
 #endif
