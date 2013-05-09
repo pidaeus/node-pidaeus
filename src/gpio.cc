@@ -79,7 +79,14 @@ GPIO::Setup(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
   uv_work_t req;
   req.data = self;
-  uv_queue_work(uv_default_loop(), &req, SetupWork, SetupAfter);
+
+  uv_queue_work(
+    uv_default_loop(),
+    &req,
+    SetupWork,
+    (uv_after_work_cb)SetupAfter
+  );
+
   return scope.Close(Undefined());
 }
 
