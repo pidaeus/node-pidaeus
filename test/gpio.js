@@ -8,6 +8,7 @@ describe('GPIO', function () {
       var gpio = new GPIO
         , errSpy = chai.spy('error')
         , readySpy = chai.spy('ready', function () {
+            console.log("ready");
             gpio.destroy();
           });
 

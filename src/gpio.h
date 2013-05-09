@@ -11,6 +11,10 @@
 using namespace v8;
 using namespace node;
 
+struct Baton {
+
+}
+
 class GPIO: public ObjectWrap {
   public:
     static void Initialize(Handle<Object> target);
@@ -24,7 +28,11 @@ class GPIO: public ObjectWrap {
 
     static Persistent<FunctionTemplate> constructor;
     static Handle<Value> New(const Arguments &args);
+
     static Handle<Value> Setup(const Arguments &args);
+    static void SetupWork(uv_work_t *req);
+    static void SetupAfter(uv_work_t *req);
+
     static Handle<Value> Teardown(const Arguments &args);
     //static Handle<Value> PinStat(const Arguments &args);
     //static Handle<Value> PinClaim(const Arguments &args);

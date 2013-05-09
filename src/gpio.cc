@@ -77,7 +77,15 @@ Handle<Value>
 GPIO::Setup(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+  uv_work_t *req;
+  req->data = self;
+  uv_queue_work(uv_default_loop(), &req, SetupWork, SetupAfter);
+  return scope.Close(Undefined());
+}
 
+void
+GPIO::SetupWork(uv_work_t *req) {
+  GPIO* self = static_cast<GPIO*>(req->data);
   if (!self->active) {
     pi_closure_t *closure = pi_closure_new();
     int success = pi_gpio_setup(closure);
@@ -90,9 +98,18 @@ GPIO::Setup(const Arguments &args) {
     self->closure = closure;
     self->active = true;
   }
-
-  return scope.Close(Undefined());
 }
+
+void
+GPIO::SetupAfter(uv_work_t *req) {
+  GPIO* self = static_cast<GPIO*>(req->data);
+  <Local>Value argv[1] = {
+    String::new("ready")
+  };
+
+  MakeCallback(self, emit_sym, 1, argv);
+}
+
 
 Handle<Value>
 GPIO::Teardown(const Arguments &args) {
