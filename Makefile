@@ -17,7 +17,7 @@ lib-cov: clean
 	@jscoverage lib lib-cov
 
 build/Release/pidaeus.node: src/* binding.gyp
-	@node-gyp rebuild
+	@node-gyp rebuild --debug
 
 clean: clean-build clean-cov
 
