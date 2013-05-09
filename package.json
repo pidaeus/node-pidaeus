@@ -24,6 +24,7 @@
     }
   , "devDependencies": {
         "chai": "*"
+      , "chai-spies": "*"
       , "mocha": "*"
     }
   , "gypfile": true
