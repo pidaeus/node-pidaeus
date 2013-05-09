@@ -7,6 +7,8 @@
 #ifndef PI_H
 #define PI_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +22,16 @@ extern "C" {
 #else
 # define PI_EXTERN /* noop */
 #endif
+
+/*
+ * Closure type
+ */
+
+typedef struct {
+  int revision;
+  volatile uint32_t *gpio_map;
+  volatile uint32_t *i2c_map;
+} pi_closure_t;
 
 /*
  * Type for GPIO pin
@@ -55,9 +67,23 @@ typedef enum {
 } pi_gpio_pull_t;
 
 typedef struct {
+  pi_closure_t *closure;
   pi_gpio_pin_t gpio;
   int error;
 } pi_gpio_handle_t;
+
+/*
+ * closure.c
+ */
+
+PI_EXTERN pi_closure_t*
+pi_default_closure(void);
+
+PI_EXTERN pi_closure_t*
+pi_closure_new(void);
+
+PI_EXTERN void
+pi_closure_delete(pi_closure_t *closure);
 
 /*
  * cpuinfo.c
@@ -71,23 +97,25 @@ pi_revision(void);
  */
 
 PI_EXTERN int
-pi_gpio_setup(void);
+pi_gpio_setup(pi_closure_t *closure);
 
 PI_EXTERN int
-pi_gpio_teardown(void);
+pi_gpio_teardown(pi_closure_t *closure);
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim(pi_gpio_pin_t gpio);
+pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t gpio);
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim_input(pi_gpio_pin_t gpio, pi_gpio_pull_t pull);
-
-PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim_output(pi_gpio_pin_t gpio, pi_gpio_value_t value);
-
-PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim_with_args(pi_gpio_pin_t gpio, pi_gpio_direction_t direction,
+pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t gpio,
   pi_gpio_pull_t pull);
+
+PI_EXTERN pi_gpio_handle_t*
+pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t gpio,
+  pi_gpio_value_t value);
+
+PI_EXTERN pi_gpio_handle_t*
+pi_gpio_claim_with_args(pi_closure_t *closure, pi_gpio_pin_t gpio,
+  pi_gpio_direction_t direction, pi_gpio_pull_t pull);
 
 PI_EXTERN void
 pi_gpio_set_direction(pi_gpio_handle_t *handle, pi_gpio_direction_t direction);

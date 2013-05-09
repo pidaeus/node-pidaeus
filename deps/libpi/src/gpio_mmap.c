@@ -38,26 +38,31 @@
 #define BLOCK_SIZE   (4*1024)
 
 /*
- * Global memory address space
- */
-
-static void *gpio_map_ctr;
-volatile unsigned *gpio_map;
-
-/*
  * Open the memory space for read/write access.
  */
 
 int
-pi_gpio_setup(void) {
+pi_gpio_setup(pi_closure_t *closure) {
+  if (closure->gpio_map != NULL) {
+    debug("already setup");
+    return 0;
+  }
+
   int fd;
   uint8_t *addr;
+  uint32_t *gpio_map_ctr;
 
   fd = open("/dev/mem", O_RDWR | O_SYNC);
-  if (fd < 0) return -1;
+  if (fd < 0) {
+    debug("error: cannot open /dev/mem");
+    return -1;
+  }
 
   addr = malloc(BLOCK_SIZE + (PAGE_SIZE - 1));
-  if (addr == NULL) return -1;
+  if (addr == NULL) {
+    debug("error: cannot malloc address");
+    return -1;
+  }
 
   if ((uint32_t)addr % PAGE_SIZE) {
     addr += PAGE_SIZE - ((uint32_t)addr % PAGE_SIZE);
@@ -72,8 +77,12 @@ pi_gpio_setup(void) {
     GPIO_BASE
   );
 
-  if (gpio_map_ctr == MAP_FAILED) return -1;
-  gpio_map = (volatile unsigned *)gpio_map_ctr;
+  if (gpio_map_ctr == MAP_FAILED) {
+    debug("error: mmap failed");
+    return -1;
+  }
+
+  closure->gpio_map = (volatile uint32_t*)gpio_map_ctr;
   debug("success");
   return 0;
 }
@@ -83,8 +92,9 @@ pi_gpio_setup(void) {
  */
 
 int
-pi_gpio_teardown(void) {
-  munmap(gpio_map_ctr, BLOCK_SIZE);
+pi_gpio_teardown(pi_closure_t *closure) {
+  munmap((uint32_t*)closure->gpio_map, BLOCK_SIZE);
+  closure->gpio_map = NULL;
   debug("success");
   return 0;
 }
@@ -94,8 +104,8 @@ pi_gpio_teardown(void) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim(pi_gpio_pin_t gpio) {
-  return pi_gpio_claim_with_args(gpio, PI_DIR_IN, PI_PULL_NONE);
+pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t gpio) {
+  return pi_gpio_claim_with_args(closure, gpio, PI_DIR_IN, PI_PULL_NONE);
 }
 
 /*
@@ -103,8 +113,8 @@ pi_gpio_claim(pi_gpio_pin_t gpio) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim_input(pi_gpio_pin_t gpio, pi_gpio_pull_t pull) {
-  return pi_gpio_claim_with_args(gpio, PI_DIR_IN, pull);
+pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_pull_t pull) {
+  return pi_gpio_claim_with_args(closure, gpio, PI_DIR_IN, pull);
 }
 
 /*
@@ -112,8 +122,8 @@ pi_gpio_claim_input(pi_gpio_pin_t gpio, pi_gpio_pull_t pull) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim_output(pi_gpio_pin_t gpio, pi_gpio_value_t value) {
-  pi_gpio_handle_t *handle = pi_gpio_claim_with_args(gpio, PI_DIR_OUT, PI_PULL_NONE);
+pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_value_t value) {
+  pi_gpio_handle_t *handle = pi_gpio_claim_with_args(closure, gpio, PI_DIR_OUT, PI_PULL_NONE);
   pi_gpio_write(handle, value);
   return handle;
 }
@@ -123,9 +133,10 @@ pi_gpio_claim_output(pi_gpio_pin_t gpio, pi_gpio_value_t value) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim_with_args(pi_gpio_pin_t gpio, pi_gpio_direction_t direction, pi_gpio_pull_t pull) {
+pi_gpio_claim_with_args(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_direction_t direction, pi_gpio_pull_t pull) {
   debug("(%i)", gpio);
   pi_gpio_handle_t *handle = malloc(sizeof(pi_gpio_handle_t));
+  handle->closure = closure;
   handle->gpio = gpio;
   handle->error = 0;
   pi_gpio_set_pull(handle, pull);
@@ -139,6 +150,7 @@ pi_gpio_claim_with_args(pi_gpio_pin_t gpio, pi_gpio_direction_t direction, pi_gp
 
 void
 pi_gpio_set_direction(pi_gpio_handle_t *handle, pi_gpio_direction_t direction) {
+  volatile uint32_t *gpio_map = handle->closure->gpio_map;
   int gpio = handle->gpio;
   int offset = FSEL_OFFSET + (gpio / 10);
   int shift = (gpio % 10) * 3;
@@ -152,6 +164,7 @@ pi_gpio_set_direction(pi_gpio_handle_t *handle, pi_gpio_direction_t direction) {
 
 pi_gpio_direction_t
 pi_gpio_get_direction(pi_gpio_handle_t *handle) {
+  volatile uint32_t *gpio_map = handle->closure->gpio_map;
   int gpio = handle->gpio;
   int offset = FSEL_OFFSET + (gpio / 10);
   int shift = (gpio % 10) * 3;
@@ -167,6 +180,7 @@ pi_gpio_get_direction(pi_gpio_handle_t *handle) {
 
 void
 pi_gpio_set_pull(pi_gpio_handle_t *handle, pi_gpio_pull_t pull) {
+  volatile uint32_t *gpio_map = handle->closure->gpio_map;
   int gpio = handle->gpio;
   int offset = PULLUPDNCLK_OFFSET + (gpio / 32);
   int shift = (gpio % 32);
@@ -196,6 +210,7 @@ pi_gpio_set_pull(pi_gpio_handle_t *handle, pi_gpio_pull_t pull) {
 
 pi_gpio_value_t
 pi_gpio_read(pi_gpio_handle_t *handle) {
+  volatile uint32_t *gpio_map = handle->closure->gpio_map;
   int gpio = handle->gpio;
   int offset = PINLEVEL_OFFSET + (gpio / 32);
   int mask = (1 << gpio % 32);
@@ -209,6 +224,7 @@ pi_gpio_read(pi_gpio_handle_t *handle) {
 
 int
 pi_gpio_write(pi_gpio_handle_t *handle, pi_gpio_value_t value) {
+  volatile uint32_t *gpio_map = handle->closure->gpio_map;
   pi_gpio_pin_t gpio = handle->gpio;
   int shift = (gpio % 32);
   int offset;
@@ -219,6 +235,7 @@ pi_gpio_write(pi_gpio_handle_t *handle, pi_gpio_value_t value) {
       offset = SET_OFFSET + (gpio / 32);
       break;
     case PI_GPIO_LOW:
+    default:
       debug("(%i) PI_GPIO_LOW", gpio);
       offset = CLR_OFFSET + (gpio / 32);
       break;
@@ -241,6 +258,8 @@ pi_gpio_release(pi_gpio_handle_t *handle) {
     pi_gpio_set_direction(handle, PI_DIR_IN);
   }
 
+  // jik ?
+  handle->closure = NULL;
   free(handle);
   return 0;
 }

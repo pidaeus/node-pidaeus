@@ -20,6 +20,7 @@
       'sources': [
         'include/pi.h',
         'src/common.h',
+        'src/closure.c',
         'src/cpuinfo.c',
         'src/gpio_mmap.c',
         'src/gpio_event.c',
@@ -37,25 +38,13 @@
     },
 
     {
-      'target_name': 'example-benchmark',
+      'target_name': 'test',
       'type': 'executable',
       'dependencies': [ 'pi' ],
-      'sources': [ 'examples/benchmark/main.c' ]
+      'sources': [
+        'test/test.c'
+      ]
     },
-
-    {
-      'target_name': 'example-led_toggle',
-      'type': 'executable',
-      'dependencies': [ 'pi' ],
-      'sources': [ 'examples/led_toggle/main.c' ]
-    },
-
-    {
-      'target_name': 'example-stepper',
-      'type': 'executable',
-      'dependencies': [ 'pi' ],
-      'sources': [ 'examples/stepper/main.c' ]
-    }
 
   ]
 }

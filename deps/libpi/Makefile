@@ -27,6 +27,13 @@ $(OUTDIR)/Makefile: $(GYPFILES)
 		$(GYPFILES)
 
 #
+# Test
+#
+
+test: release
+	@./$(OUTDIR)/release/test
+
+#
 # Dependencies
 #
 
@@ -52,3 +59,4 @@ clean-all: clean
 .PHONY: $(Builds)
 .PHONY: all 
 .PHONY: clean clean-out clean-all
+.PHONY: test
