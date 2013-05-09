@@ -112,7 +112,7 @@ void
 GPIO::SetupAfter(uv_work_t *req, int status) {
   GPIO* self = static_cast<GPIO*>(req->data);
   Local<Value> argv[1] = {
-    String::new("ready")
+    String::New("ready")
   };
 
   MakeCallback(self, emit_sym, 1, argv);
