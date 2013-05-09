@@ -11,10 +11,6 @@
 using namespace v8;
 using namespace node;
 
-struct Baton {
-
-}
-
 class GPIO: public ObjectWrap {
   public:
     static void Initialize(Handle<Object> target);
