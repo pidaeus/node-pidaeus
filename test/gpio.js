@@ -8,10 +8,11 @@ describe('GPIO', function () {
       var gpio = new GPIO
         , errSpy = chai.spy('error')
         , readySpy = chai.spy('ready', function () {
-            console.log("ready");
+            console.log('ready');
             gpio.destroy();
           });
 
+      gpio.on('ready', readySpy);
       gpio.on('close', function () {
         errSpy.should.not.have.been.called;
         readySpy.should.have.been.called.once;
