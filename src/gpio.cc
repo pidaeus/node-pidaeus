@@ -78,12 +78,14 @@ GPIO::Setup(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
-  uv_work_t req;
-  req.data = self;
+  Baton *baton = new Baton();
+  baton->req.data = baton;
+  baton->object = args.Holder();
+  baton->self = self;
 
   uv_queue_work(
     uv_default_loop(),
-    &req,
+    &baton->req,
     SetupWork,
     (uv_after_work_cb)SetupAfter
   );
@@ -93,7 +95,9 @@ GPIO::Setup(const Arguments &args) {
 
 void
 GPIO::SetupWork(uv_work_t *req) {
-  GPIO* self = static_cast<GPIO*>(req->data);
+  Baton* baton = static_cast<Baton*>(req->data);
+  GPIO* self = static_cast<GPIO*>(baton->self);
+
   if (!self->active) {
     pi_closure_t *closure = pi_closure_new();
     int success = pi_gpio_setup(closure);
@@ -110,12 +114,13 @@ GPIO::SetupWork(uv_work_t *req) {
 
 void
 GPIO::SetupAfter(uv_work_t *req, int status) {
-  GPIO* self = static_cast<GPIO*>(req->data);
+  Baton* baton = static_cast<Baton*>(req->data);
+
   Local<Value> argv[1] = {
     String::New("ready")
   };
 
-  MakeCallback(self->object_, emit_sym, 1, argv);
+  MakeCallback(baton->object, emit_sym, 1, argv);
 }
 
 
