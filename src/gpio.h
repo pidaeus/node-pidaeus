@@ -40,4 +40,10 @@ class GPIO: public ObjectWrap {
     //static Handle<Value> WritePin(const Arguments &args);
 };
 
+struct Baton {
+  uv_work_t req;
+  Handle<Object> object;
+  GPIO* self;
+}
+
 #endif
