@@ -33,10 +33,10 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
   SetPrototypeMethod(constructor, "destroy", Teardown);
-  SetPrototypeMethod(constructor, "stat", PinStat);
-  SetPrototypeMethod(constructor, "claim", PinClaim);
-  SetPrototypeMethod(constructor, "release", PinRelease);
-  SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
+  //SetPrototypeMethod(constructor, "stat", PinStat);
+  //SetPrototypeMethod(constructor, "claim", PinClaim);
+  //SetPrototypeMethod(constructor, "release", PinRelease);
+  //SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "getDirection", GetPinDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
   //SetPrototypeMethod(constructor, "read", ReadPin);
@@ -107,13 +107,16 @@ GPIO::Teardown(const Arguments &args) {
       }
     }
 
-    pi_gpio_teardown();
+    pi_gpio_teardown(self->closure);
+    pi_closure_delete(self->closure);
+    self->closure = NULL;
     self->active = false;
   }
 
   return scope.Close(Undefined());
 }
 
+/*
 Handle<Value>
 GPIO::PinClaim(const Arguments &args) {
   HandleScope scope;
@@ -171,7 +174,6 @@ GPIO::PinStat(const Arguments &args) {
   return scope.Close(res);
 }
 
-/*
 char *get(v8::Local<v8::Value> value, const char *fallback = "") {
   if (value->IsString()) {
       v8::String::AsciiValue string(value);
@@ -183,7 +185,6 @@ char *get(v8::Local<v8::Value> value, const char *fallback = "") {
   strcpy(str, fallback);
   return str;
 }
-*/
 
 Handle<Value>
 GPIO::PinSetDirection(const Arguments &args) {
@@ -206,6 +207,7 @@ GPIO::PinSetDirection(const Arguments &args) {
   // TODO: Error checking
   return scope.Close(args.Holder());
 }
+*/
 
 GPIO::GPIO () {
   active = false;
