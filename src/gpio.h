@@ -27,7 +27,7 @@ class GPIO: public ObjectWrap {
 
     static Handle<Value> Setup(const Arguments &args);
     static void SetupWork(uv_work_t *req);
-    static void SetupAfter(uv_work_t *req);
+    static void SetupAfter(uv_work_t *req, int status);
 
     static Handle<Value> Teardown(const Arguments &args);
     //static Handle<Value> PinStat(const Arguments &args);
