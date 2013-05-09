@@ -100,7 +100,7 @@ GPIO::SetupWork(uv_work_t *req) {
 
     if (success < 0) {
       pi_closure_delete(closure);
-      return ERROR("gpio setup failed: are you root?");
+      //return ERROR("gpio setup failed: are you root?");
     }
 
     self->closure = closure;
