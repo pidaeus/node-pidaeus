@@ -16,6 +16,8 @@ using namespace node;
 #define TYPE_ERROR(msg) \
   ThrowException(Exception::TypeError(String::New(msg)))
 
+static Persistent<String> emit_sym;
+
 Persistent<FunctionTemplate> GPIO::constructor;
 
 void
@@ -30,11 +32,11 @@ GPIO::Initialize(Handle<Object> target) {
 
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
-  SetPrototypeMethod(constructor, "teardown", Teardown);
+  SetPrototypeMethod(constructor, "destroy", Teardown);
   SetPrototypeMethod(constructor, "stat", PinStat);
-  SetPrototypeMethod(constructor, "claim", ClaimPin);
-  SetPrototypeMethod(constructor, "release", ReleasePin);
-  SetPrototypeMethod(constructor, "setDirection", SetPinDirection);
+  SetPrototypeMethod(constructor, "claim", PinClaim);
+  SetPrototypeMethod(constructor, "release", PinRelease);
+  SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "getDirection", GetPinDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
   //SetPrototypeMethod(constructor, "read", ReadPin);
@@ -42,6 +44,9 @@ GPIO::Initialize(Handle<Object> target) {
 
   // Prototype (Getters/Setters)
   // Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
+
+  // Persistent Symbols
+  emit_sym = NODE_PSYMBOL("emit");
 
   // Export
   target->Set(String::NewSymbol("GPIO"), constructor->GetFunction());
@@ -63,18 +68,30 @@ PiDirection(const Handle<String> &v8str) {
   return PI_DIR_IN;
 }
 
+void
+GpioEmit() {
+
+}
+
 Handle<Value>
 GPIO::Setup(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   if (!self->active) {
-    int success = pi_gpio_setup();
-    if (success < 0) return ERROR("gpio setup failed: are you root?");
-    self->active = 1;
+    pi_closure_t *closure = pi_closure_new();
+    int success = pi_gpio_setup(closure);
+
+    if (success < 0) {
+      pi_closure_delete(closure);
+      return ERROR("gpio setup failed: are you root?");
+    }
+
+    self->closure = closure;
+    self->active = true;
   }
 
-  return scope.Close(args.Holder());
+  return scope.Close(Undefined());
 }
 
 Handle<Value>
@@ -91,14 +108,14 @@ GPIO::Teardown(const Arguments &args) {
     }
 
     pi_gpio_teardown();
-    self->active = 0;
+    self->active = false;
   }
 
-  return scope.Close(args.Holder());
+  return scope.Close(Undefined());
 }
 
 Handle<Value>
-GPIO::ClaimPin(const Arguments &args) {
+GPIO::PinClaim(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
@@ -112,6 +129,26 @@ GPIO::ClaimPin(const Arguments &args) {
   pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
   self->pins[gpio] = handle;
 
+  return scope.Close(args.Holder());
+}
+
+Handle<Value>
+GPIO::PinRelease(const Arguments &args) {
+  HandleScope scope;
+  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+
+  int len = args.Length();
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
+
+  pi_gpio_pin_t gpio = args[0]->Int32Value();
+  if (self->pins[gpio] == NULL) return ERROR("gpio pin has not been claimed");
+
+  pi_gpio_handle_t *handle = self->pins[gpio];
+  pi_gpio_release(handle);
+  self->pins[gpio] = NULL;
+
+  // TODO: Error checking
   return scope.Close(args.Holder());
 }
 
@@ -149,27 +186,7 @@ char *get(v8::Local<v8::Value> value, const char *fallback = "") {
 */
 
 Handle<Value>
-GPIO::ReleasePin(const Arguments &args) {
-  HandleScope scope;
-  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
-
-  int len = args.Length();
-  if (len < 1) return TYPE_ERROR("gpio pin required");
-  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
-
-  pi_gpio_pin_t gpio = args[0]->Int32Value();
-  if (self->pins[gpio] == NULL) return ERROR("gpio pin has not been claimed");
-
-  pi_gpio_handle_t *handle = self->pins[gpio];
-  pi_gpio_release(handle);
-  self->pins[gpio] = NULL;
-
-  // TODO: Error checking
-  return scope.Close(args.Holder());
-}
-
-Handle<Value>
-GPIO::SetPinDirection(const Arguments &args) {
+GPIO::PinSetDirection(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
@@ -191,7 +208,8 @@ GPIO::SetPinDirection(const Arguments &args) {
 }
 
 GPIO::GPIO () {
-  active = 0;
+  active = false;
+  closure = NULL;
 
   for (int i = 0; i < PI_MAX_PINS; i++) {
     pins[i] = NULL;
