@@ -111,7 +111,7 @@ GPIO::SetupWork(uv_work_t *req) {
 void
 GPIO::SetupAfter(uv_work_t *req, int status) {
   GPIO* self = static_cast<GPIO*>(req->data);
-  <Local>Value argv[1] = {
+  Local<Value> argv[1] = {
     String::new("ready")
   };
 
