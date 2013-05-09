@@ -115,7 +115,7 @@ GPIO::SetupAfter(uv_work_t *req, int status) {
     String::New("ready")
   };
 
-  MakeCallback(self, emit_sym, 1, argv);
+  MakeCallback(self->object_, emit_sym, 1, argv);
 }
 
 
