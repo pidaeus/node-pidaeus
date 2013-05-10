@@ -192,8 +192,11 @@ GPIO::PinClaim(const Arguments &args) {
   }
 
   pi_gpio_handle_t *handle = pi_gpio_claim(self->closure, gpio);
-  pi_gpio_set_direction(handle, direction);
   self->pins[gpio] = handle;
+
+  if (direction != PI_DIR_IN) {
+    pi_gpio_set_direction(handle, direction);
+  }
 
   return scope.Close(args.Holder());
 }
