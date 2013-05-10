@@ -90,13 +90,19 @@ describe('GPIO', function () {
       });
     });
 
-    describe.skip('.setDirection()', function () {
+    describe('.setDirection()', function () {
       it('should set direction of pin', function (done) {
         var gpio = new GPIO
           , stat;
 
         gpio.setup(function () {
           gpio.claim(GPIO_PIN);
+          stat = gpio.stat(GPIO_PIN);
+          stat.should.have.property('direction', 'in');
+          gpio.setDirection(GPIO_PIN, "out");
+          stat = gpio.stat(GPIO_PIN);
+          gpio.release(GPIO_PIN);
+          stat.should.have.property('direction', 'out');
           gpio.destroy(done);
         });
       });
