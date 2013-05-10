@@ -123,5 +123,19 @@ describe('GPIO', function () {
         });
       });
     });
+
+    describe('.write()', function () {
+      it('should write a value to a pin', function (done) {
+        var gpio = new GPIO;
+
+        gpio.setup(function () {
+          gpio.claim(GPIO_PIN, 'out');
+          (function () {
+            gpio.write(GPIO_PIN, 1);
+          }).should.not.throw();
+          gpio.destroy(done);
+        });
+      });
+    });
   });
 });
