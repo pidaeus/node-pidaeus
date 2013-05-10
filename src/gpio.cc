@@ -33,9 +33,9 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
   SetPrototypeMethod(constructor, "destroy", Destroy);
+  SetPrototypeMethod(constructor, "claim", PinClaim);
+  SetPrototypeMethod(constructor, "release", PinRelease);
   //SetPrototypeMethod(constructor, "stat", PinStat);
-  //SetPrototypeMethod(constructor, "claim", PinClaim);
-  //SetPrototypeMethod(constructor, "release", PinRelease);
   //SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "getDirection", GetPinDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
@@ -172,24 +172,32 @@ GPIO::DestroyAfter(uv_work_t *req, int status) {
   delete baton;
 }
 
-/*
 Handle<Value>
 GPIO::PinClaim(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   int len = args.Length();
+  pi_direction_t direction = PI_DIR_IN;
+
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   if (self->pins[gpio] != NULL) return ERROR("gpio pin already claimed");
 
-  pi_gpio_handle_t *handle = pi_gpio_claim(gpio);
+  if (len > 1) {
+    if (!args[1]->IsString()) return TYPE_ERROR("direction must be a string");
+    direction = PiDirection(args[1]->ToString());
+  }
+
+  pi_gpio_handle_t *handle = pi_gpio_claim(self->closure, gpio);
+  pi_gpio_set_direction(handle, direction);
   self->pins[gpio] = handle;
 
   return scope.Close(args.Holder());
 }
+
 
 Handle<Value>
 GPIO::PinRelease(const Arguments &args) {
@@ -204,13 +212,14 @@ GPIO::PinRelease(const Arguments &args) {
   if (self->pins[gpio] == NULL) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  pi_gpio_release(handle);
+  pi_gpio_release(self->closure, handle);
   self->pins[gpio] = NULL;
 
   // TODO: Error checking
   return scope.Close(args.Holder());
 }
 
+/*
 Handle<Value>
 GPIO::PinStat(const Arguments &args) {
   HandleScope scope;
