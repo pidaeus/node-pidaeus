@@ -107,5 +107,21 @@ describe('GPIO', function () {
         });
       });
     });
+
+    describe('.read()', function () {
+      it('should read a pin\'s value', function (done) {
+        var gpio = new GPIO
+          , val;
+
+        gpio.setup(function () {
+          gpio.claim(GPIO_PIN, 'in');
+          (function () {
+            val = gpio.read(GPIO_PIN);
+          }).should.not.throw();
+          val.should.be.a('number').equal(0);
+          gpio.destroy(done);
+        });
+      });
+    });
   });
 });

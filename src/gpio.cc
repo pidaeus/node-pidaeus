@@ -37,10 +37,9 @@ GPIO::Initialize(Handle<Object> target) {
   SetPrototypeMethod(constructor, "release", PinRelease);
   SetPrototypeMethod(constructor, "stat", PinStat);
   SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
-  //SetPrototypeMethod(constructor, "getDirection", GetPinDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
-  //SetPrototypeMethod(constructor, "read", ReadPin);
-  //SetPrototypeMethod(constructor, "write", WritePin);
+  SetPrototypeMethod(constructor, "read", PinRead);
+  SetPrototypeMethod(constructor, "write", PinWrite);
 
   // Prototype (Getters/Setters)
   // Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
@@ -294,6 +293,55 @@ GPIO::PinSetDirection(const Arguments &args) {
   pi_gpio_set_direction(handle, direction);
 
   // TODO: Error checking
+  return scope.Close(args.Holder());
+}
+
+Handle<Value>
+GPIO::PinRead(const Arguments &args) {
+  HandleScope scope;
+  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+
+  int len = args.Length();
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
+
+  pi_gpio_pin_t gpio = args[0]->Int32Value();
+  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
+
+  pi_gpio_handle_t *handle = self->pins[gpio];
+  pi_gpio_value_t value = pi_gpio_read(handle);
+
+  return scope.Close(Number::New(value));
+}
+
+Handle<Value>
+GPIO::PinWrite(const Arguments &args) {
+  HandleScope scope;
+  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+
+  int len = args.Length();
+  if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
+  if (len < 2) return TYPE_ERROR("gpio value required");
+  if (!args[1]->IsUint32()) return TYPE_ERROR("gpio value must be a number");
+
+  pi_gpio_pin_t gpio = args[0]->Int32Value();
+  if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
+
+  pi_gpio_handle_t *handle = self->pins[gpio];
+  pi_gpio_value_t value
+
+  // TODO: error if not 0 or 1
+  switch (args[1]->Int32Value()) {
+    case 0:
+      value = PI_GPIO_LOW;
+      break;
+    default:
+      value = PI_GPIO_HIGH;
+      break;
+  }
+
+  pi_gpio_write(handle, value);
   return scope.Close(args.Holder());
 }
 

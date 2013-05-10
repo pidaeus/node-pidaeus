@@ -37,10 +37,9 @@ class GPIO: public ObjectWrap {
     static Handle<Value> PinRelease(const Arguments &args);
     static Handle<Value> PinStat(const Arguments &args);
     static Handle<Value> PinSetDirection(const Arguments &args);
-    //static Handle<Value> PinGetDirection(const Arguments &args);
     //static Handle<Value> SetPinPull(const Arguments &args);
-    //static Handle<Value> ReadPin(const Arguments &args);
-    //static Handle<Value> WritePin(const Arguments &args);
+    static Handle<Value> PinRead(const Arguments &args);
+    static Handle<Value> PinWrite(const Arguments &args);
 };
 
 struct Baton {
