@@ -178,7 +178,7 @@ GPIO::PinClaim(const Arguments &args) {
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   int len = args.Length();
-  pi_direction_t direction = PI_DIR_IN;
+  pi_gpio_direction_t direction = PI_DIR_IN;
 
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
