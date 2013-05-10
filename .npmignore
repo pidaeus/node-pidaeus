@@ -1,7 +1,10 @@
 docs/
 test/
+build/
 coverage.html
 lib-cov
 .travis.yml
 Makefile
 *.swp
+*.taghl
+tags
