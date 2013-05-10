@@ -68,7 +68,7 @@ PiDirection(const Handle<String> &v8str) {
   return PI_DIR_IN;
 }
 
-char *
+char
 PiStrDirection(pi_gpio_direction_t direction) {
   char str[120];
 
