@@ -234,7 +234,7 @@ GPIO::PinStat(const Arguments &args) {
   Local<Object> res = Object::New();
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   bool exist = self->pins[gpio] == NULL ? false : true;
-  char *direction;
+  pi_gpio_direction_t direction;
 
   res->Set(String::New("pin"), Number::New(gpio));
   res->Set(String::New("claimed"), Boolean::New(exist));
