@@ -329,7 +329,7 @@ GPIO::PinWrite(const Arguments &args) {
   if (!self->pins[gpio]) return ERROR("gpio pin has not been claimed");
 
   pi_gpio_handle_t *handle = self->pins[gpio];
-  pi_gpio_value_t value
+  pi_gpio_value_t value;
 
   // TODO: error if not 0 or 1
   switch (args[1]->Int32Value()) {
