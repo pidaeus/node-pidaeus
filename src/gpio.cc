@@ -36,7 +36,7 @@ GPIO::Initialize(Handle<Object> target) {
   SetPrototypeMethod(constructor, "claim", PinClaim);
   SetPrototypeMethod(constructor, "release", PinRelease);
   SetPrototypeMethod(constructor, "stat", PinStat);
-  //SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
+  SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "getDirection", GetPinDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
   //SetPrototypeMethod(constructor, "read", ReadPin);
@@ -66,6 +66,22 @@ PiDirection(const Handle<String> &v8str) {
   if (!strcasecmp(*str, "in")) return PI_DIR_IN;
   if (!strcasecmp(*str, "out")) return PI_DIR_OUT;
   return PI_DIR_IN;
+}
+
+char *
+PiStrDirection(pi_gpio_direction_t direction) {
+  char str[120];
+
+  switch (direction) {
+    case PI_DIR_IN:
+      strcpy(str, "in");
+      break;
+    case PI_DIR_OUT:
+      strcpy(str, "out");
+      break;
+  }
+
+  return str;
 }
 
 Handle<Value>
@@ -234,9 +250,18 @@ GPIO::PinStat(const Arguments &args) {
   Local<Object> res = Object::New();
   pi_gpio_pin_t gpio = args[0]->Int32Value();
   bool exist = self->pins[gpio] == NULL ? false : true;
+  char *direction;
 
   res->Set(String::New("pin"), Number::New(gpio));
   res->Set(String::New("claimed"), Boolean::New(exist));
+
+  if (exist) {
+    pi_gpio_handle_t *handle = self->pins[gpio];
+    direction = PiStrDirection(pi_gpio_get_direction(handle));
+    res->Set(String::New("direction"), String::New(direction));
+  } else {
+    res->Set(String::New("direction"), Null());
+  }
 
   return scope.Close(res);
 }
@@ -253,6 +278,7 @@ char *get(v8::Local<v8::Value> value, const char *fallback = "") {
   strcpy(str, fallback);
   return str;
 }
+*/
 
 Handle<Value>
 GPIO::PinSetDirection(const Arguments &args) {
@@ -275,7 +301,6 @@ GPIO::PinSetDirection(const Arguments &args) {
   // TODO: Error checking
   return scope.Close(args.Holder());
 }
-*/
 
 GPIO::GPIO () {
   active = false;

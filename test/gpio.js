@@ -83,6 +83,20 @@ describe('GPIO', function () {
             .a('number').equal(GPIO_PIN);
           stat.should.have.property('claimed')
             .a('boolean').equal(true);
+          stat.should.have.property('direction')
+            .a('string').equal('in');
+          gpio.destroy(done);
+        });
+      });
+    });
+
+    describe.skip('.setDirection()', function () {
+      it('should set direction of pin', function (done) {
+        var gpio = new GPIO
+          , stat;
+
+        gpio.setup(function () {
+          gpio.claim(GPIO_PIN);
           gpio.destroy(done);
         });
       });
