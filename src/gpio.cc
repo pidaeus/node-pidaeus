@@ -32,7 +32,7 @@ GPIO::Initialize(Handle<Object> target) {
 
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
-  SetPrototypeMethod(constructor, "destroy", Teardown);
+  SetPrototypeMethod(constructor, "destroy", Destroy);
   //SetPrototypeMethod(constructor, "stat", PinStat);
   //SetPrototypeMethod(constructor, "claim", PinClaim);
   //SetPrototypeMethod(constructor, "release", PinRelease);
@@ -66,11 +66,6 @@ PiDirection(const Handle<String> &v8str) {
   if (!strcasecmp(*str, "in")) return PI_DIR_IN;
   if (!strcasecmp(*str, "out")) return PI_DIR_OUT;
   return PI_DIR_IN;
-}
-
-void
-GpioEmit() {
-
 }
 
 Handle<Value>
@@ -121,13 +116,34 @@ GPIO::SetupAfter(uv_work_t *req, int status) {
   };
 
   MakeCallback(baton->object, emit_sym, 1, argv);
+  delete baton;
 }
 
 
 Handle<Value>
-GPIO::Teardown(const Arguments &args) {
+GPIO::Destroy(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+
+  Baton *baton = new Baton();
+  baton->req.data = baton;
+  baton->object = args.Holder();
+  baton->self = self;
+
+  uv_queue_work(
+    uv_default_loop(),
+    &baton->req,
+    DestroyWork,
+    (uv_after_work_cb)DestroyAfter
+  );
+
+  return Undefined();
+}
+
+void
+GPIO::DestroyWork(uv_work_t *req) {
+  Baton* baton = static_cast<Baton*>(req->data);
+  GPIO* self = static_cast<GPIO*>(baton->self);
 
   if (self->active) {
     for (int i = 0; i < PI_MAX_PINS; i++) {
@@ -142,8 +158,18 @@ GPIO::Teardown(const Arguments &args) {
     self->closure = NULL;
     self->active = false;
   }
+}
 
-  return scope.Close(Undefined());
+void
+GPIO::DestroyAfter(uv_work_t *req, int status) {
+  Baton* baton = static_cast<Baton*>(req->data);
+
+  Local<Value> argv[1] = {
+    String::New("close")
+  };
+
+  MakeCallback(baton->object, emit_sym, 1, argv);
+  delete baton;
 }
 
 /*

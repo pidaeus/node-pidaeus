@@ -29,7 +29,10 @@ class GPIO: public ObjectWrap {
     static void SetupWork(uv_work_t *req);
     static void SetupAfter(uv_work_t *req, int status);
 
-    static Handle<Value> Teardown(const Arguments &args);
+    static Handle<Value> Destroy(const Arguments &args);
+    static void DestroyWork(uv_work_t *req);
+    static void DestroyAfter(uv_work_t *req, int status);
+
     //static Handle<Value> PinStat(const Arguments &args);
     //static Handle<Value> PinClaim(const Arguments &args);
     //static Handle<Value> PinRelease(const Arguments &args);
