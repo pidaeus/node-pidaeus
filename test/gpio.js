@@ -118,7 +118,7 @@ describe('GPIO', function () {
           (function () {
             val = gpio.read(GPIO_PIN);
           }).should.not.throw();
-          val.should.be.a('number').equal(0);
+          val.should.be.a('number').equal(1);
           gpio.destroy(done);
         });
       });
