@@ -68,5 +68,24 @@ describe('GPIO', function () {
         });
       });
     });
+
+    describe('.stat()', function () {
+      it('should return an object', function (done) {
+        var gpio = new GPIO
+          , stat;
+
+        gpio.setup(function () {
+          gpio.claim(GPIO_PIN);
+          stat = gpio.stat(GPIO_PIN);
+          gpio.release(GPIO_PIN);
+          should.exist(stat);
+          stat.should.have.property('pin')
+            .a('number').equal(GPIO_PIN);
+          stat.should.have.property('claimed')
+            .a('boolean').equal(true);
+          gpio.destroy(done);
+        });
+      });
+    });
   });
 });

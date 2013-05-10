@@ -35,7 +35,7 @@ GPIO::Initialize(Handle<Object> target) {
   SetPrototypeMethod(constructor, "destroy", Destroy);
   SetPrototypeMethod(constructor, "claim", PinClaim);
   SetPrototypeMethod(constructor, "release", PinRelease);
-  //SetPrototypeMethod(constructor, "stat", PinStat);
+  SetPrototypeMethod(constructor, "stat", PinStat);
   //SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "getDirection", GetPinDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
@@ -222,7 +222,6 @@ GPIO::PinRelease(const Arguments &args) {
   return scope.Close(args.Holder());
 }
 
-/*
 Handle<Value>
 GPIO::PinStat(const Arguments &args) {
   HandleScope scope;
@@ -242,6 +241,7 @@ GPIO::PinStat(const Arguments &args) {
   return scope.Close(res);
 }
 
+/*
 char *get(v8::Local<v8::Value> value, const char *fallback = "") {
   if (value->IsString()) {
       v8::String::AsciiValue string(value);
