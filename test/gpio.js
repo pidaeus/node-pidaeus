@@ -114,7 +114,7 @@ describe('GPIO', function () {
           , val;
 
         gpio.setup(function () {
-          gpio.claim(GPIO_PIN, 'in');
+          gpio.claim(GPIO_PIN, 'in', "down");
           (function () {
             val = gpio.read(GPIO_PIN);
           }).should.not.throw();

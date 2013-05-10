@@ -62,9 +62,18 @@ GPIO::New(const Arguments &args) {
 pi_gpio_direction_t
 PiDirection(const Handle<String> &v8str) {
   String::AsciiValue str(v8str);
-  if (!strcasecmp(*str, "in")) return PI_DIR_IN;
   if (!strcasecmp(*str, "out")) return PI_DIR_OUT;
+  if (!strcasecmp(*str, "in")) return PI_DIR_IN;
   return PI_DIR_IN;
+}
+
+pi_gpio_pull_t
+PiPull(const Handle<String> &v8str) {
+  String::AsciiValue str(v8str);
+  if (!strcasecmp(*str, "up")) return PI_PULL_UP;
+  if (!strcasecmp(*str, "down")) return PI_PULL_DOWN;
+  if (!strcasecmp(*str, "none")) return PI_PULL_NONE;
+  return PI_PULL_NONE;
 }
 
 Handle<Value>
@@ -178,6 +187,7 @@ GPIO::PinClaim(const Arguments &args) {
 
   int len = args.Length();
   pi_gpio_direction_t direction = PI_DIR_IN;
+  pi_gpio_pull_t pull = PI_PULL_NONE;
 
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
@@ -190,11 +200,20 @@ GPIO::PinClaim(const Arguments &args) {
     direction = PiDirection(args[1]->ToString());
   }
 
+  if (direction == PI_DIR_IN && len > 2) {
+    if (!args[2]->IsString()) return TYPE_ERROR("pull must be a string");
+    pull = PiPull(args[2]->ToString());
+  }
+
   pi_gpio_handle_t *handle = pi_gpio_claim(self->closure, gpio);
   self->pins[gpio] = handle;
 
   if (direction != PI_DIR_IN) {
     pi_gpio_set_direction(handle, direction);
+  }
+
+  if (direction == PI_DIR_IN && pull !== PI_PULL_NONE) {
+    pi_gpio_set_pull(handle, pull);
   }
 
   return scope.Close(args.Holder());
