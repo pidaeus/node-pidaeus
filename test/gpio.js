@@ -25,11 +25,31 @@ describe('GPIO', function () {
 
   describe('Pins', function () {
     describe('.claim()', function () {
-      it('should claim a pin', function (done) {
+      it('should claim a pin with default options', function (done) {
         var gpio = new GPIO;
         gpio.setup(function () {
           (function () {
             gpio.claim(GPIO_PIN);
+          }).should.not.throw();
+          gpio.destroy(done);
+        });
+      });
+
+      it('should claim a pin with direction = "in"', function (done) {
+        var gpio = new GPIO;
+        gpio.setup(function () {
+          (function () {
+            gpio.claim(GPIO_PIN, 'in');
+          }).should.not.throw();
+          gpio.destroy(done);
+        });
+      });
+
+      it('should claim a pin with direction = "out"', function (done) {
+        var gpio = new GPIO;
+        gpio.setup(function () {
+          (function () {
+            gpio.claim(GPIO_PIN, 'out');
           }).should.not.throw();
           gpio.destroy(done);
         });
