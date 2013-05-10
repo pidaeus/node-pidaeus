@@ -212,7 +212,7 @@ GPIO::PinClaim(const Arguments &args) {
     pi_gpio_set_direction(handle, direction);
   }
 
-  if (direction == PI_DIR_IN && pull !== PI_PULL_NONE) {
+  if (direction == PI_DIR_IN && pull != PI_PULL_NONE) {
     pi_gpio_set_pull(handle, pull);
   }
 
