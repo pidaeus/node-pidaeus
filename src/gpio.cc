@@ -68,22 +68,6 @@ PiDirection(const Handle<String> &v8str) {
   return PI_DIR_IN;
 }
 
-char
-PiStrDirection(pi_gpio_direction_t direction) {
-  char str[120];
-
-  switch (direction) {
-    case PI_DIR_IN:
-      strcpy(str, "in");
-      break;
-    case PI_DIR_OUT:
-      strcpy(str, "out");
-      break;
-  }
-
-  return str;
-}
-
 Handle<Value>
 GPIO::Setup(const Arguments &args) {
   HandleScope scope;
@@ -257,8 +241,19 @@ GPIO::PinStat(const Arguments &args) {
 
   if (exist) {
     pi_gpio_handle_t *handle = self->pins[gpio];
-    direction = PiStrDirection(pi_gpio_get_direction(handle));
-    res->Set(String::New("direction"), String::New(direction));
+    direction = pi_gpio_get_direction(handle);
+    char str[120];
+
+    switch (direction) {
+      case PI_DIR_IN:
+        strcpy(str, "in");
+        break;
+      case PI_DIR_OUT:
+        strcpy(str, "out");
+        break;
+    }
+
+    res->Set(String::New("direction"), String::New(str));
   } else {
     res->Set(String::New("direction"), Null());
   }
