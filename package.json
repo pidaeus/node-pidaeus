@@ -19,7 +19,7 @@
     }
   , "dependencies": {
         "bindings": "~1.1.0"
-      , "drip": "*"
+      , "drip": "1.2.x"
       , "sherlock": "*"
     }
   , "devDependencies": {
