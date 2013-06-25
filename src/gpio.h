@@ -71,7 +71,7 @@ class GPIO: public ObjectWrap {
  * @type struct
  * @name Baton
  * @param {uv_work_t} req
- * @param {v8::Persistent<v8::Function}> cb
+ * @param {v8::Persistent<v8::Function>} cb
  * @param {GPIO*} self
  */
 

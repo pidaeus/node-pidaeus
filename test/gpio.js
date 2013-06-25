@@ -1,10 +1,9 @@
 var GPIO_PIN = 4;
 
-
 describe('GPIO', function () {
   var GPIO = pidaeus.GPIO;
 
-  describe.only('(setup/destroy)', function () {
+  describe('(setup/destroy)', function () {
     it('should invoke callbacks', function (done) {
       var gpio = new GPIO;
 
@@ -35,7 +34,7 @@ describe('GPIO', function () {
     });
   });
 
-  describe('Pins', function () {
+  describe.only('(pin management)', function () {
     describe('.claim()', function () {
       it('should claim a pin with default options', function (done) {
         var gpio = new GPIO;
@@ -80,7 +79,9 @@ describe('GPIO', function () {
         });
       });
     });
+  });
 
+  describe('(io)', function () {
     describe('.stat()', function () {
       it('should return an object', function (done) {
         var gpio = new GPIO
