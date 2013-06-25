@@ -55,6 +55,8 @@ class GPIO: public ObjectWrap {
 
     // gpio pin statistics
     static Handle<Value> PinStat(const Arguments &args);
+    static void PinStatWork(uv_work_t *req);
+    static void PinStatAfter(uv_work_t *req, int status);
 
     // gpio pin modifications
     static Handle<Value> PinSetDirection(const Arguments &args);
@@ -80,5 +82,14 @@ struct Baton {
   Persistent<Function> cb;
   GPIO* self;
 };
+
+struct StatBaton {
+  uv_work_t req;
+  GPIO* self;
+  pi_gpio_pin_t gpio;
+  Persistent<Function> cb;
+  Local<Object> result;
+  char* error;
+}
 
 #endif

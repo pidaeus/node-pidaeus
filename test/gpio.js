@@ -47,7 +47,7 @@ describe('GPIO', function () {
     });
   });
 
-  describe.only('(pin management)', function () {
+  describe('(pin management)', function () {
     describe('.claimSync()', function () {
       it('should claimSync a pin with default options', function (done) {
         setup(function (gpio, destroy) {
@@ -112,23 +112,23 @@ describe('GPIO', function () {
   });
 
   describe('(io)', function () {
-    describe('.stat()', function () {
+    describe.only('.stat()', function () {
       it('should return an object', function (done) {
-        var gpio = new GPIO
-          , stat;
-
-        gpio.setup(function () {
+        setup(function (gpio, destroy) {
           gpio.claimSync(GPIO_PIN);
           stat = gpio.stat(GPIO_PIN);
           gpio.releaseSync(GPIO_PIN);
           should.exist(stat);
-          stat.should.have.property('pin')
+          stat.should
+            .have.property('pin')
             .a('number').equal(GPIO_PIN);
-          stat.should.have.property('claimSynced')
+          stat.should
+            .have.property('claimSynced')
             .a('boolean').equal(true);
-          stat.should.have.property('direction')
+          stat.should
+            .have.property('direction')
             .a('string').equal('in');
-          gpio.destroy(done);
+          destroy(done);
         });
       });
     });

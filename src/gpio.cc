@@ -58,8 +58,10 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
   SetPrototypeMethod(constructor, "destroy", Destroy);
+
   SetPrototypeMethod(constructor, "claimSync", PinClaimSync);
   SetPrototypeMethod(constructor, "releaseSync", PinReleaseSync);
+
   SetPrototypeMethod(constructor, "stat", PinStat);
   SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
@@ -306,8 +308,38 @@ GPIO::PinStat(const Arguments &args) {
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
 
-  Local<Object> res = Object::New();
   pi_gpio_pin_t gpio = args[0]->Int32Value();
+
+  StatBaton *baton = new StatBaton();
+  baton->req.data = baton;
+  baton->self = self;
+  baton->gpio = gpio;
+
+  if (!args[1]->IsFunction()) {
+    int res = uv_queue_work(
+      uv_default_loop(),
+      &baton->req,
+      PinStatWork,
+      NULL
+    );
+
+    if (res < 0) {
+      return ERROR(baton->error);
+    } else {
+      return scope.close(baton->result);
+    }
+  }
+
+  return Undefined();
+}
+
+void
+GPIO::PinStatWork(uv_work_t *req) {
+  Baton* baton = static_cast<Baton*>(req->data);
+  GPIO* self = static_cast<GPIO*>(baton->self);
+  pi_gpio_pin_t gpio = baton->gpio;
+
+  Local<Object> res = Object::New();
   bool exist = self->pins[gpio] == NULL ? false : true;
   pi_gpio_direction_t direction;
 
@@ -333,8 +365,15 @@ GPIO::PinStat(const Arguments &args) {
     res->Set(String::New("direction"), Null());
   }
 
-  return scope.Close(res);
+  baton->result = res;
+  return 0;
 }
+
+void
+GPIO::PinStatAfter(uv_work_t *req, int status) {
+
+}
+
 
 /*
 char *get(v8::Local<v8::Value> value, const char *fallback = "") {
