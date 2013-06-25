@@ -1,14 +1,30 @@
 
-#include "gpio.h"
+
+/*!
+ * Environment Includes
+ */
 
 #include <v8.h>
 #include <node.h>
 #include <string.h>
 
+/*!
+ * API Includes
+ */
+
+#include "gpio.h"
 #include <pi.h>
+
+/*!
+ * Namespaces
+ */
 
 using namespace v8;
 using namespace node;
+
+/*!
+ * Error Macros
+ */
 
 #define ERROR(msg) \
   ThrowException(Exception::Error(String::New(msg)))
@@ -16,9 +32,18 @@ using namespace node;
 #define TYPE_ERROR(msg) \
   ThrowException(Exception::TypeError(String::New(msg)))
 
-static Persistent<String> emit_sym;
+/*!
+ * v8 Function Template
+ */
 
 Persistent<FunctionTemplate> GPIO::constructor;
+
+/**
+ * Initialize a new function template and create
+ * JavaScript Prototype object.
+ *
+ * @param {v8::Object} target
+ */
 
 void
 GPIO::Initialize(Handle<Object> target) {
@@ -44,12 +69,16 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Getters/Setters)
   // Local<ObjectTemplate> proto = constructor->PrototypeTemplate();
 
-  // Persistent Symbols
-  emit_sym = NODE_PSYMBOL("emit");
-
   // Export
   target->Set(String::NewSymbol("GPIO"), constructor->GetFunction());
 }
+
+/**
+ * Constructor for new GPIO instance.
+ *
+ * @param {Arguments} args
+ * @return {Value} v8 argument holder (this)
+ */
 
 Handle<Value>
 GPIO::New(const Arguments &args) {
@@ -75,6 +104,14 @@ PiPull(const Handle<String> &v8str) {
   if (!strcasecmp(*str, "none")) return PI_PULL_NONE;
   return PI_PULL_NONE;
 }
+
+/**
+ * Initialize the GPIO interface asyncronously.
+ *
+ * @param {Arguments} args
+ * @arg {Function} callback (required)
+ * @return {Undefined}
+ */
 
 Handle<Value>
 GPIO::Setup(const Arguments &args) {
@@ -131,7 +168,7 @@ GPIO::SetupAfter(uv_work_t *req, int status) {
 
   TryCatch try_catch;
   baton->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-  if (try_catch.HasCaught()) node::FatalException(try_catch);
+  if (try_catch.HasCaught()) FatalException(try_catch);
 
   baton->cb.Dispose();
   delete baton;
@@ -194,7 +231,7 @@ GPIO::DestroyAfter(uv_work_t *req, int status) {
 
   TryCatch try_catch;
   baton->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-  if (try_catch.HasCaught()) node::FatalException(try_catch);
+  if (try_catch.HasCaught()) FatalException(try_catch);
 
   baton->cb.Dispose();
   delete baton;
