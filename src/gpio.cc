@@ -58,8 +58,8 @@ GPIO::Initialize(Handle<Object> target) {
   // Prototype (Methods)
   SetPrototypeMethod(constructor, "setup", Setup);
   SetPrototypeMethod(constructor, "destroy", Destroy);
-  SetPrototypeMethod(constructor, "claim", PinClaim);
-  SetPrototypeMethod(constructor, "release", PinRelease);
+  SetPrototypeMethod(constructor, "claimSync", PinClaimSync);
+  SetPrototypeMethod(constructor, "releaseSync", PinReleaseSync);
   SetPrototypeMethod(constructor, "stat", PinStat);
   SetPrototypeMethod(constructor, "setDirection", PinSetDirection);
   //SetPrototypeMethod(constructor, "setPull", SetPinPull);
@@ -238,7 +238,7 @@ GPIO::DestroyAfter(uv_work_t *req, int status) {
 }
 
 Handle<Value>
-GPIO::PinClaim(const Arguments &args) {
+GPIO::PinClaimSync(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
@@ -278,7 +278,7 @@ GPIO::PinClaim(const Arguments &args) {
 
 
 Handle<Value>
-GPIO::PinRelease(const Arguments &args) {
+GPIO::PinReleaseSync(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 

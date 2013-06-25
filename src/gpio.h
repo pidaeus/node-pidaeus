@@ -50,8 +50,8 @@ class GPIO: public ObjectWrap {
     static void DestroyAfter(uv_work_t *req, int status);
 
     // gpio pin management
-    static Handle<Value> PinClaim(const Arguments &args);
-    static Handle<Value> PinRelease(const Arguments &args);
+    static Handle<Value> PinClaimSync(const Arguments &args);
+    static Handle<Value> PinReleaseSync(const Arguments &args);
 
     // gpio pin statistics
     static Handle<Value> PinStat(const Arguments &args);
