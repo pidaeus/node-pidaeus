@@ -38,7 +38,8 @@ describe('GPIO', function () {
     describe('.claim()', function () {
       it('should claim a pin with default options', function (done) {
         var gpio = new GPIO;
-        gpio.setup(function () {
+        gpio.setup(function (err) {
+          should.not.exist(err);
           (function () {
             gpio.claim(GPIO_PIN);
           }).should.not.throw();
@@ -48,7 +49,8 @@ describe('GPIO', function () {
 
       it('should claim a pin with direction = "in"', function (done) {
         var gpio = new GPIO;
-        gpio.setup(function () {
+        gpio.setup(function (err) {
+          should.not.exist(err);
           (function () {
             gpio.claim(GPIO_PIN, 'in');
           }).should.not.throw();
@@ -58,10 +60,25 @@ describe('GPIO', function () {
 
       it('should claim a pin with direction = "out"', function (done) {
         var gpio = new GPIO;
-        gpio.setup(function () {
+        gpio.setup(function (err) {
+          should.not.exist(err);
           (function () {
             gpio.claim(GPIO_PIN, 'out');
           }).should.not.throw();
+          gpio.destroy(done);
+        });
+      });
+
+      it('should throw error if already claimed', function (done) {
+        var gpio = new GPIO;
+        gpio.setup(function (err) {
+          should.not.exist(err);
+          (function () {
+            gpio.claim(GPIO_PIN);
+          }).should.not.throw();
+          (function () {
+            gpio.claim(GPIO_PIN);
+          }).should.throw(/already claimed/);
           gpio.destroy(done);
         });
       });
@@ -70,7 +87,8 @@ describe('GPIO', function () {
     describe('.release()', function () {
       it('should release a pin', function (done) {
         var gpio = new GPIO;
-        gpio.setup(function () {
+        gpio.setup(function (err) {
+          should.not.exist(err);
           gpio.claim(GPIO_PIN);
           (function () {
             gpio.release(GPIO_PIN);
