@@ -83,8 +83,6 @@ GPIO::Setup(const Arguments &args) {
 
   Baton *baton = new Baton();
   baton->req.data = baton;
-  baton->object = args.Holder();
-  baton->self = self;
 
   uv_queue_work(
     uv_default_loop(),
@@ -120,10 +118,14 @@ GPIO::SetupAfter(uv_work_t *req, int status) {
   Baton* baton = static_cast<Baton*>(req->data);
 
   Local<Value> argv[1] = {
-    String::New("ready")
+    Local<Value>::New(Null())
   };
 
-  MakeCallback(baton->object, emit_sym, 1, argv);
+  TryCatch try_catch;
+  baton->cb->Call(Context::GetCurrent(), 1, argc);
+  if (try_catch.HasCaught()) node::FatalException(try_catch);
+
+  baton->cb->Dispose();
   delete baton;
 }
 
@@ -135,7 +137,6 @@ GPIO::Destroy(const Arguments &args) {
 
   Baton *baton = new Baton();
   baton->req.data = baton;
-  baton->object = args.Holder();
   baton->self = self;
 
   uv_queue_work(
@@ -173,10 +174,14 @@ GPIO::DestroyAfter(uv_work_t *req, int status) {
   Baton* baton = static_cast<Baton*>(req->data);
 
   Local<Value> argv[1] = {
-    String::New("close")
+    Local<Value>::New(Null())
   };
 
-  MakeCallback(baton->object, emit_sym, 1, argv);
+  TryCatch try_catch;
+  baton->cb->Call(Context::GetCurrent(), 1, argc);
+  if (try_catch.HasCaught()) node::FatalException(try_catch);
+
+  baton->cb->Dispose();
   delete baton;
 }
 

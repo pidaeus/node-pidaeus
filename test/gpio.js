@@ -1,9 +1,22 @@
 var GPIO_PIN = 4;
 
+
 describe('GPIO', function () {
   var GPIO = pidaeus.GPIO;
 
-  describe('(setup/destroy)', function () {
+  describe.only('(setup/destroy)', function () {
+    it('should invoke callbacks', function (done) {
+      var gpio = new GPIO;
+
+      gpio.setup(function (err) {
+        should.not.exist(err);
+        gpio.destroy(function (err) {
+          should.not.exist(err);
+          done();
+        });
+      });
+    });
+
     it('should emit proper events', function (done) {
       var gpio = new GPIO
         , errSpy = chai.spy('error')
