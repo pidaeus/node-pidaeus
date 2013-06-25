@@ -326,7 +326,7 @@ GPIO::PinStat(const Arguments &args) {
     if (res < 0) {
       return ERROR(baton->error);
     } else {
-      return scope.close(baton->result);
+      return scope.Close(baton->result);
     }
   }
 
@@ -335,7 +335,7 @@ GPIO::PinStat(const Arguments &args) {
 
 void
 GPIO::PinStatWork(uv_work_t *req) {
-  Baton* baton = static_cast<Baton*>(req->data);
+  StatBaton* baton = static_cast<StatBaton*>(req->data);
   GPIO* self = static_cast<GPIO*>(baton->self);
   pi_gpio_pin_t gpio = baton->gpio;
 
