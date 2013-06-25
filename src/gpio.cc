@@ -79,10 +79,17 @@ PiPull(const Handle<String> &v8str) {
 Handle<Value>
 GPIO::Setup(const Arguments &args) {
   HandleScope scope;
+
+  int len = args.Length();
+  if (len > 0 && !args[1]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
+
+  Local<Function> callback = Local<Function>::Cast(args[1]);
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   Baton *baton = new Baton();
   baton->req.data = baton;
+  baton->self = self;
+  baton->cb = Persistent<Function>::New(callback);
 
   uv_queue_work(
     uv_default_loop(),
@@ -133,11 +140,17 @@ GPIO::SetupAfter(uv_work_t *req, int status) {
 Handle<Value>
 GPIO::Destroy(const Arguments &args) {
   HandleScope scope;
+
+  int len = args.Length();
+  if (len > 0 && !args[1]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
+
+  Local<Function> callback = Local<Function>::Cast(args[1]);
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   Baton *baton = new Baton();
   baton->req.data = baton;
   baton->self = self;
+  baton->cb = Persistent<Function>::New(callback);
 
   uv_queue_work(
     uv_default_loop(),

@@ -45,6 +45,7 @@ class GPIO: public ObjectWrap {
 struct Baton {
   uv_work_t req;
   Persistent<Function> cb;
+  GPIO* self;
 };
 
 #endif
