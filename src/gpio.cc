@@ -129,7 +129,7 @@ GPIO::SetupAfter(uv_work_t *req, int status) {
   };
 
   TryCatch try_catch;
-  baton->cb->Call(Context::GetCurrent(), 1, argv);
+  baton->cb->Call(Context::GetCurrent()->Global(), 1, argv);
   if (try_catch.HasCaught()) node::FatalException(try_catch);
 
   baton->cb.Dispose();
@@ -191,7 +191,7 @@ GPIO::DestroyAfter(uv_work_t *req, int status) {
   };
 
   TryCatch try_catch;
-  baton->cb->Call(Context::GetCurrent(), 1, argv);
+  baton->cb->Call(Context::GetCurrent()->Global(), 1, argv);
   if (try_catch.HasCaught()) node::FatalException(try_catch);
 
   baton->cb.Dispose();
