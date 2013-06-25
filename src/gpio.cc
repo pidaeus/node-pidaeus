@@ -366,7 +366,6 @@ GPIO::PinStatWork(uv_work_t *req) {
   }
 
   baton->result = res;
-  return 0;
 }
 
 void
