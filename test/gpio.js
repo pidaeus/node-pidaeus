@@ -4,7 +4,7 @@ describe('GPIO', function () {
   var GPIO = pidaeus.GPIO;
 
   function setup(cb) {
-    var gpio = new GPIP;
+    var gpio = new GPIO;
     gpio.setup(function (err) {
       should.not.exist(err);
       cb(gpio, function (done) {
