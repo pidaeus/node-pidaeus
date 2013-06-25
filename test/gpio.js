@@ -100,7 +100,7 @@ describe('GPIO', function () {
         });
       });
 
-      it('should throw if not claimed', function () {
+      it('should throw if not claimed', function (done) {
         setup(function (gpio, destroy) {
           (function () {
             gpio.release(GPIO_PIN);
