@@ -3,6 +3,19 @@ var GPIO_PIN = 4;
 describe('GPIO', function () {
   var GPIO = pidaeus.GPIO;
 
+  function setup(cb) {
+    var gpio = new GPIP;
+    gpio.setup(function (err) {
+      should.not.exist(err);
+      cb(gpio, function (done) {
+        gpio.destroy(function (err) {
+          should.not.exist(err);
+          done();
+        });
+      });
+    });
+  }
+
   describe('(setup/destroy)', function () {
     it('should invoke callbacks', function (done) {
       var gpio = new GPIO;
@@ -37,63 +50,62 @@ describe('GPIO', function () {
   describe.only('(pin management)', function () {
     describe('.claim()', function () {
       it('should claim a pin with default options', function (done) {
-        var gpio = new GPIO;
-        gpio.setup(function (err) {
-          should.not.exist(err);
+        setup(function (gpio, destroy) {
           (function () {
             gpio.claim(GPIO_PIN);
           }).should.not.throw();
-          gpio.destroy(done);
+          destroy(done);
         });
       });
 
       it('should claim a pin with direction = "in"', function (done) {
-        var gpio = new GPIO;
-        gpio.setup(function (err) {
-          should.not.exist(err);
+        setup(function (gpio, destroy) {
           (function () {
             gpio.claim(GPIO_PIN, 'in');
           }).should.not.throw();
-          gpio.destroy(done);
+          destroy(done);
         });
       });
 
       it('should claim a pin with direction = "out"', function (done) {
-        var gpio = new GPIO;
-        gpio.setup(function (err) {
-          should.not.exist(err);
+        setup(function (gpio, destroy) {
           (function () {
             gpio.claim(GPIO_PIN, 'out');
           }).should.not.throw();
-          gpio.destroy(done);
+          destroy(done);
         });
       });
 
       it('should throw error if already claimed', function (done) {
-        var gpio = new GPIO;
-        gpio.setup(function (err) {
-          should.not.exist(err);
+        setup(function (gpio, destroy) {
           (function () {
             gpio.claim(GPIO_PIN);
           }).should.not.throw();
           (function () {
             gpio.claim(GPIO_PIN);
           }).should.throw(/already claimed/);
-          gpio.destroy(done);
+          destroy(done);
         });
       });
     });
 
     describe('.release()', function () {
       it('should release a pin', function (done) {
-        var gpio = new GPIO;
-        gpio.setup(function (err) {
-          should.not.exist(err);
+        setup(function (gpio, destroy) {
           gpio.claim(GPIO_PIN);
           (function () {
             gpio.release(GPIO_PIN);
           }).should.not.throw();
-          gpio.destroy(done);
+          destroy(done);
+        });
+      });
+
+      it('should throw if not claimed', function () {
+        setup(function (gpio, destroy) {
+          (function () {
+            gpio.release(GPIO_PIN);
+          }).should.throw(/not been claimed/);
+          destroy(done);
         });
       });
     });
