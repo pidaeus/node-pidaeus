@@ -90,6 +90,6 @@ struct StatBaton {
   Persistent<Function> cb;
   Local<Object> result;
   char* error;
-}
+};
 
 #endif
