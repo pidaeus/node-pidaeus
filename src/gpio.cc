@@ -81,9 +81,10 @@ GPIO::Setup(const Arguments &args) {
   HandleScope scope;
 
   int len = args.Length();
-  if (len > 0 && !args[0]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
+  if (len < 1) return TYPE_ERROR("Callback required.");
+  if (!args[0]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
 
-  Local<Function> callback = Local<Function>::Cast(args[1]);
+  Local<Function> callback = Local<Function>::Cast(args[0]);
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   Baton *baton = new Baton();
@@ -142,9 +143,10 @@ GPIO::Destroy(const Arguments &args) {
   HandleScope scope;
 
   int len = args.Length();
-  if (len > 0 && !args[0]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
+  if (len < 1) return TYPE_ERROR("Callback required.");
+  if (!args[0]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
 
-  Local<Function> callback = Local<Function>::Cast(args[1]);
+  Local<Function> callback = Local<Function>::Cast(args[0]);
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   Baton *baton = new Baton();
