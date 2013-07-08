@@ -361,7 +361,7 @@ GPIO::PinStatWork(uv_work_t *req) {
     res->Set(String::New("direction"), Null());
   }
 
-  baton->result = res;
+  baton->result = Persistent<Object>::New(res);
 }
 
 void

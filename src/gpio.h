@@ -88,8 +88,7 @@ struct StatBaton {
   GPIO* self;
   pi_gpio_pin_t gpio;
   Persistent<Function> cb;
-  Local<Object> result;
-  char* error;
+  Persistent<Object> result;
 };
 
 #endif
