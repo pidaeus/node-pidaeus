@@ -370,7 +370,19 @@ GPIO::PinStatWork(uv_work_t *req) {
 
 void
 GPIO::PinStatAfter(uv_work_t *req, int status) {
+  StatBaton* baton = static_cast<StatBaton*>(req->data);
 
+  Local<Value> argv[2] = {
+    Local<Value>::New(Null()),
+    baton->result
+  };
+
+  TryCatch try_catch;
+  baton->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+  if (try_catch.HasCaught()) FatalException(try_catch);
+
+  baton->cb.Dispose();
+  delete baton;
 }
 
 
@@ -393,7 +405,7 @@ GPIO::PinSetDirection(const Arguments &args) {
   HandleScope scope;
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
-  int len = args.Length();
+int len = args.Length();
   if (len < 1) return TYPE_ERROR("gpio pin required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
   if (len < 2) return TYPE_ERROR("gpio direction required");

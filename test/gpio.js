@@ -116,19 +116,21 @@ describe('GPIO', function () {
       it('should return an object', function (done) {
         setup(function (gpio, destroy) {
           gpio.claimSync(GPIO_PIN);
-          stat = gpio.stat(GPIO_PIN);
-          gpio.releaseSync(GPIO_PIN);
-          should.exist(stat);
-          stat.should
-            .have.property('pin')
-            .a('number').equal(GPIO_PIN);
-          stat.should
-            .have.property('claimSynced')
-            .a('boolean').equal(true);
-          stat.should
-            .have.property('direction')
-            .a('string').equal('in');
-          destroy(done);
+          stat = gpio.stat(GPIO_PIN, function (err, stat) {
+            should.not.exist(err);
+            gpio.releaseSync(GPIO_PIN);
+            should.exist(stat);
+            stat.should
+              .have.property('pin')
+              .a('number').equal(GPIO_PIN);
+            stat.should
+              .have.property('claimSynced')
+              .a('boolean').equal(true);
+            stat.should
+              .have.property('direction')
+              .a('string').equal('in');
+            destroy(done);
+          });
         });
       });
     });
