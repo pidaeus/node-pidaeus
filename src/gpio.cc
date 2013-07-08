@@ -305,7 +305,7 @@ GPIO::PinStat(const Arguments &args) {
 
   int len = args.Length();
   if (len < 1) return TYPE_ERROR("gpio pin required");
-  if (len < 2) return TYPE_ERRIR("callback required");
+  if (len < 2) return TYPE_ERROR("callback required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
   if (!args[1]->IsFunction()) return TYPE_ERROR("callback must be a function");
 
