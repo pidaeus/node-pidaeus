@@ -185,8 +185,8 @@ GPIO::Destroy(const Arguments &args) {
   if (len < 1) return TYPE_ERROR("Callback required.");
   if (!args[0]->IsFunction()) return TYPE_ERROR("First argument must be a function.");
 
-  Local<Function> callback = Local<Function>::Cast(args[0]);
   GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
+  Local<Function> callback = Local<Function>::Cast(args[0]);
 
   Baton *baton = new Baton();
   baton->req.data = baton;
@@ -302,33 +302,29 @@ GPIO::PinReleaseSync(const Arguments &args) {
 Handle<Value>
 GPIO::PinStat(const Arguments &args) {
   HandleScope scope;
-  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
 
   int len = args.Length();
   if (len < 1) return TYPE_ERROR("gpio pin required");
+  if (len < 2) return TYPE_ERRIR("callback required");
   if (!args[0]->IsUint32()) return TYPE_ERROR("gpio pin must be a number");
+  if (!args[1]->IsFunction()) return TYPE_ERROR("callback must be a function");
 
+  GPIO *self = ObjectWrap::Unwrap<GPIO>(args.Holder());
   pi_gpio_pin_t gpio = args[0]->Int32Value();
+  Local<Function> callback = Local<Function>::Cast(args[0]);
 
   StatBaton *baton = new StatBaton();
   baton->req.data = baton;
   baton->self = self;
   baton->gpio = gpio;
+  baton->cb = Persistent<Function>::New(callback);
 
-  if (!args[1]->IsFunction()) {
-    int res = uv_queue_work(
-      uv_default_loop(),
-      &baton->req,
-      PinStatWork,
-      NULL
-    );
-
-    if (res < 0) {
-      return ERROR(baton->error);
-    } else {
-      return scope.Close(baton->result);
-    }
-  }
+  uv_queue_work(
+    uv_default_loop(),
+    &baton->req,
+    PinStatWork,
+    (uv_after_work_cb)PinStatAfter
+  );
 
   return Undefined();
 }
