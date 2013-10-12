@@ -19,13 +19,12 @@
     }
   , "dependencies": {
         "bindings": "~1.1.0"
-      , "drip": "1.2.x"
+      , "nan": "0.4.x"
       , "sherlock": "*"
     }
   , "devDependencies": {
         "chai": "*"
       , "chai-spies": "*"
-      , "mocha": "*"
     }
   , "gypfile": true
 }
