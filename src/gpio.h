@@ -1,15 +1,103 @@
+/*!
+ * Only once
+ */
 
 #ifndef __NODE_GPIO_H__
 #define __NODE_GPIO_H__
 
-#include <v8.h>
+/*!
+ * External includes
+ */
+
 #include <node.h>
+#include <string>
+#include <v8.h>
+
+/*!
+ * Source controlled includes
+ */
+
 #include <pi.h>
+#include "nan.h"
+
+/*!
+ * Max pins
+ */
 
 #define PI_MAX_PINS 31
 
-using namespace v8;
-using namespace node;
+/*!
+ * Setup ensures callback for async methods and constructs
+ * options object.
+ */
+
+#define PI_GPIO_SETUP_COMMON(name, optionPos, callbackPos)                    \
+  if (args.Length() == 0)                                                     \
+    return NanThrowError(#name "() requires a callback argument");            \
+  pidaeus::GPIO* gpio = node::ObjectWrap::Unwrap<pidaeus::GPIO>(args.This()); \
+  v8::Local<v8::Object> optionsObj;                                           \
+  v8::Local<v8::Function> callback;                                           \
+  if (optionPos == -1 && args[callbackPos]->IsFunction()) {                   \
+    callback = args[callbackPos].As<v8::Function>();                          \
+  } else if (optionPos != -1 && args[callbackPos - 1]->IsFunction()) {        \
+    callback = args[callbackPos - 1].As<v8::Function>();                      \
+  } else if (optionPos != -1                                                  \
+        && args[optionPos]->IsObject()                                        \
+        && args[callbackPos]->IsFunction()) {                                 \
+    optionsObj = args[optionPos].As<v8::Object>();                            \
+    callback = args[callbackPos].As<v8::Function>();                          \
+  } else {                                                                    \
+    return NanThrowError(#name "() requires a callback argument");            \
+  }
+
+/*!
+ * Setup native status bacon.
+ */
+
+#define PI_GPIO_SETUP_NATIVE(name)                                            \
+  pidaeus::GPIOStatus* status = new GPIOStatus();                             \
+  status->success = true;                                                     \
+  if (active == false) {                                                      \
+    status->success = false;                                                  \
+    status->msg = #name "() requires gpio to be setup";                       \
+    return status;                                                            \
+  }                                                                           \
+
+/*!
+ * No V8 macro for erroring out a pin action.
+ */
+
+#define PI_GPIO_PIN_HANDLE_NATIVE(pin)                                        \
+  if (pins[pin] == NULL) {                                                    \
+    std::stringstream msg;                                                    \
+    msg << "pin " << pin << " has not been claimed";                          \
+    status->success = false;                                                  \
+    status->msg = msg.str();                                                  \
+    return status;                                                            \
+  }                                                                           \
+  pi_gpio_handle_t *handle = pins[pin];                                       \
+
+/*!
+ * Start namespace
+ */
+
+namespace pidaeus {
+
+/*~
+ * Status baton for async methods.
+ * TODO: generalize for I2C
+ */
+
+struct GPIOStatus {
+  bool success;
+  std::string msg;
+};
+
+/*!
+ * Constructor method for GPIO javascript object.
+ */
+
+NAN_METHOD(GPIOConstruct);
 
 /*!
  * Class GPIO
@@ -21,74 +109,50 @@ using namespace node;
  * @inherit {ObjectWrap}
  */
 
-class GPIO: public ObjectWrap {
+class GPIO: public node::ObjectWrap {
   public:
-    static void Initialize(Handle<Object> target);
+    static void Init();
+    static v8::Handle<v8::Value> NewInstance();
+
+    // native bridges
+    GPIOStatus* NativeSetup();
+    GPIOStatus* NativeTeardown();
+
+    GPIOStatus* NativePinClaim(
+        pi_gpio_pin_t pin
+      , pi_gpio_direction_t direction
+      , pi_gpio_pull_t pull
+    );
+
+    GPIOStatus* NativePinRelease(pi_gpio_pin_t pin);
+    GPIOStatus* NativePinRead(pi_gpio_pin_t pin, pi_gpio_value_t& value);
+    GPIOStatus* NativePinWrite(pi_gpio_pin_t pin, pi_gpio_value_t value);
 
     // bridge variables
     pi_closure_t *closure;
     pi_gpio_handle_t *pins[PI_MAX_PINS];
     bool active;
 
-  private:
     // cpp (de)construct methods
     GPIO ();
     ~GPIO ();
 
-    // construction
-    static Persistent<FunctionTemplate> constructor;
-    static Handle<Value> New(const Arguments &args);
+  private:
 
-    // gpio setup interface
-    static Handle<Value> Setup(const Arguments &args);
-    static void SetupWork(uv_work_t *req);
-    static void SetupAfter(uv_work_t *req, int status);
+    // methods
+    static NAN_METHOD(New);
+    static NAN_METHOD(Setup);
+    static NAN_METHOD(Teardown);
+    static NAN_METHOD(PinClaim);
+    static NAN_METHOD(PinRelease);
+    static NAN_METHOD(PinRead);
+    static NAN_METHOD(PinWrite);
 
-    // gpio teardown interface
-    static Handle<Value> Destroy(const Arguments &args);
-    static void DestroyWork(uv_work_t *req);
-    static void DestroyAfter(uv_work_t *req, int status);
-
-    // gpio pin management
-    static Handle<Value> PinClaimSync(const Arguments &args);
-    static Handle<Value> PinReleaseSync(const Arguments &args);
-
-    // gpio pin statistics
-    static Handle<Value> PinStat(const Arguments &args);
-    static void PinStatWork(uv_work_t *req);
-    static void PinStatAfter(uv_work_t *req, int status);
-
-    // gpio pin modifications
-    static Handle<Value> PinSetDirection(const Arguments &args);
-    //static Handle<Value> SetPinPull(const Arguments &args);
-
-    // gpio i/o
-    static Handle<Value> PinRead(const Arguments &args);
-    static Handle<Value> PinWrite(const Arguments &args);
+    /*
+    static NAN_METHOD(PinStat);
+    */
 };
 
-/*!
- * Baton structure for use with uv_queue_work.
- *
- * @type struct
- * @name Baton
- * @param {uv_work_t} req
- * @param {v8::Persistent<v8::Function>} cb
- * @param {GPIO*} self
- */
-
-struct Baton {
-  uv_work_t req;
-  Persistent<Function> cb;
-  GPIO* self;
-};
-
-struct StatBaton {
-  uv_work_t req;
-  GPIO* self;
-  pi_gpio_pin_t gpio;
-  Persistent<Function> cb;
-  Persistent<Object> result;
-};
+} // end namespace
 
 #endif
