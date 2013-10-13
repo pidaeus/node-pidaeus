@@ -19,6 +19,8 @@
     }
   , "dependencies": {
         "bindings": "~1.1.0"
+      , "breeze-async": "0.1.x"
+      , "contraption": "0.2.x"
       , "nan": "0.4.x"
       , "sherlock": "*"
     }
