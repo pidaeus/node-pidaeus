@@ -1,5 +1,5 @@
 
-LIBPI_V = "0.2.0"
+LIBPI_V = "0.3.0"
 
 TESTS = test/*.js
 REPORTER = spec
@@ -38,3 +38,4 @@ deps/libpi:
 
 .PHONY: test lib-cov test-cov 
 .PHONY: clean clean-build clean-cov clean
+.PHONY: deps/*
