@@ -55,11 +55,11 @@ pi__gpio_write(pi_gpio_handle_t *listener, char *path, char *str) {
 
 static int
 pi__gpio_export(pi_gpio_handle_t *listener) {
-  debug("(%i)", listener->gpio);
-  char gpio[3];
+  debug("(%i)", listener->pin);
+  char pinstr[3];
   int res;
-  snprintf(gpio, sizeof(gpio), "%d", listener->gpio);
-  res = pi__gpio_write(listener, "/export", gpio);
+  snprintf(pinstr, sizeof(pinstr), "%d", listener->pin);
+  res = pi__gpio_write(listener, "/export", pinstr);
   return res;
 }
 
@@ -69,35 +69,35 @@ pi__gpio_export(pi_gpio_handle_t *listener) {
 
 static int
 pi__gpio_unexport(pi_gpio_handle_t *listener) {
-  debug("(%i)", listener->gpio);
-  char str[3];
+  debug("(%i)", listener->pin);
+  char pinstr[3];
   int res;
-  snprintf(str, sizeof(str), "%d", listener->gpio);
-  res = pi__gpio_write(listener, "/unexport", str);
+  snprintf(pinstr, sizeof(pinstr), "%d", listener->pin);
+  res = pi__gpio_write(listener, "/unexport", pinstr);
   return res;
 }
 
 /*
- * Set direction for a GPIO pin.
+ * Set mode for a GPIO pin.
  */
 
 static int
-pi__gpio_set_direction(pi_gpio_handle_t *listener, pi_gpio_direction_t direction) {
+pi__gpio_set_mode(pi_gpio_handle_t *listener, pi_gpio_mode_t mode) {
   char path[MAX_BUF];
   char str[MAX_BUF];
 
-  switch (direction) {
-    case PI_DIR_IN:
-      debug("(%i) in", (int)listener->gpio);
+  switch (mode) {
+    case PI_GPIO_MODE_INPUT:
+      debug("(%i) in", (int)listener->pin);
       strcpy(str, "in");
       break;
-    case PI_DIR_OUT:
-      debug("(%i) out", (int)listener->gpio);
+    case PI_GPIO_MODE_OUTPUT:
+      debug("(%i) out", (int)listener->pin);
       strcpy(str, "out");
       break;
   }
 
-  snprintf(path, sizeof(path), "/gpio%d/direction", listener->gpio);
+  snprintf(path, sizeof(path), "/gpio%d/mode", listener->pin);
   int res = pi__gpio_write(listener, path, str);
   return res;
 }
@@ -113,25 +113,25 @@ pi__gpio_set_edge(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
   int res;
 
   switch (edge) {
-    case PI_EDGE_NONE:
-      debug("(%i) none", listener->gpio);
+    case PI_GPIO_EDGE_NONE:
+      debug("(%i) none", listener->pin);
       strcpy(str, "none");
       break;
-    case PI_EDGE_RISING:
-      debug("(%i) rising", listener->gpio);
+    case PI_GPIO_EDGE_RISING:
+      debug("(%i) rising", listener->pin);
       strcpy(str, "rising");
       break;
-    case PI_EDGE_FALLING:
-      debug("(%i) falling", listener->gpio);
+    case PI_GPIO_EDGE_FALLING:
+      debug("(%i) falling", listener->pin);
       strcpy(str, "falling");
       break;
-    case PI_EDGE_BOTH:
-      debug("(%i) both", listener->gpio);
+    case PI_GPIO_EDGE_BOTH:
+      debug("(%i) both", listener->pin);
       strcpy(str, "both");
       break;
   }
 
-  snprintf(path, sizeof(path), "/gpio%d/edge", listener->gpio);
+  snprintf(path, sizeof(path), "/gpio%d/edge", listener->pin);
   res = pi__gpio_write(listener, path, str);
   return res;
 }
@@ -141,14 +141,15 @@ pi__gpio_set_edge(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_listener_claim(pi_gpio_pin_t gpio) {
-  debug("(%i)", (int)gpio);
+pi_gpio_listener_claim(pi_gpio_pin_t pin) {
+  debug("(%i)", (int)pin);
   pi_gpio_handle_t *listener = malloc(sizeof(pi_gpio_handle_t));
-  listener->gpio = gpio;
+  listener->method = PI_GPIO_METHOD_SYSFS;
+  listener->pin = pin;
   listener->error = 0;
   int r_exp = pi__gpio_export(listener);
   if (r_exp < 0) return listener;
-  pi__gpio_set_direction(listener, PI_DIR_IN);
+  pi__gpio_set_mode(listener, PI_GPIO_MODE_INPUT);
   return listener;
 }
 
@@ -158,7 +159,7 @@ pi_gpio_listener_claim(pi_gpio_pin_t gpio) {
 
 void
 pi_gpio_listener_release(pi_gpio_handle_t* listener) {
-  debug("(%i)", (int)listener->gpio);
+  debug("(%i)", (int)listener->pin);
   pi__gpio_unexport(listener);
   free(listener);
 }
@@ -175,7 +176,7 @@ pi_gpio_listen(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
 
   pi__gpio_set_edge(listener, edge);
 
-  snprintf(path, sizeof(path), SYSFS_GPIO_DIR "/gpio%d/value", listener->gpio);
+  snprintf(path, sizeof(path), SYSFS_GPIO_DIR "/gpio%d/value", listener->pin);
   int fd = open(path, O_RDONLY);
   if (fd < 0 ) return -1;
 
@@ -191,7 +192,7 @@ pi_gpio_listen(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
   pfd[0].events = POLLPRI | POLLERR;
   pfd[0].revents = 0;
 
-  debug("(%i) start", (int)listener->gpio);
+  debug("(%i) start", (int)listener->pin);
   int event = poll(pfd, 1, -1);
 
   if (event == 1 && pfd[0].revents & POLLPRI) {
@@ -210,6 +211,6 @@ pi_gpio_listen(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
   }
 
   close(fd);
-  debug("(%i) return %i", (int)listener->gpio, (int)res);
+  debug("(%i) return %i", (int)listener->pin, (int)res);
   return res;
 }

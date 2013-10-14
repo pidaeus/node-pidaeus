@@ -49,26 +49,32 @@ typedef enum {
 } pi_gpio_value_t;
 
 typedef enum {
-  PI_DIR_IN  = 0x00,
-  PI_DIR_OUT = 0x01
-} pi_gpio_direction_t;
+  PI_GPIO_MODE_INPUT  = 0x00,
+  PI_GPIO_MODE_OUTPUT = 0x01
+} pi_gpio_mode_t;
 
 typedef enum {
-  PI_EDGE_NONE    = 0x00,
-  PI_EDGE_RISING  = 0x01,
-  PI_EDGE_FALLING = 0x02,
-  PI_EDGE_BOTH    = 0x03
+  PI_GPIO_EDGE_NONE    = 0x00,
+  PI_GPIO_EDGE_RISING  = 0x01,
+  PI_GPIO_EDGE_FALLING = 0x02,
+  PI_GPIO_EDGE_BOTH    = 0x03
 } pi_gpio_edge_t;
 
 typedef enum {
-  PI_PULL_NONE  = 0x00,
-  PI_PULL_DOWN  = 0x01,
-  PI_PULL_UP    = 0x02
+  PI_GPIO_PULL_NONE  = 0x00,
+  PI_GPIO_PULL_DOWN  = 0x01,
+  PI_GPIO_PULL_UP    = 0x02
 } pi_gpio_pull_t;
+
+typedef enum {
+  PI_GPIO_METHOD_MMAP,
+  PI_GPIO_METHOD_SYSFS
+} pi_gpio_method_t;
 
 typedef struct {
   pi_closure_t *closure;
-  pi_gpio_pin_t gpio;
+  pi_gpio_pin_t pin;
+  pi_gpio_method_t method;
   int error;
 } pi_gpio_handle_t;
 
@@ -103,25 +109,25 @@ PI_EXTERN int
 pi_gpio_teardown(pi_closure_t *closure);
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t gpio);
+pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t pin);
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t gpio,
+pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t pin,
   pi_gpio_pull_t pull);
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t gpio,
+pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t pin,
   pi_gpio_value_t value);
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_claim_with_args(pi_closure_t *closure, pi_gpio_pin_t gpio,
-  pi_gpio_direction_t direction, pi_gpio_pull_t pull);
+pi_gpio_claim_with_args(pi_closure_t *closure, pi_gpio_pin_t pin,
+  pi_gpio_mode_t mode, pi_gpio_pull_t pull);
 
 PI_EXTERN void
-pi_gpio_set_direction(pi_gpio_handle_t *handle, pi_gpio_direction_t direction);
+pi_gpio_set_mode(pi_gpio_handle_t *handle, pi_gpio_mode_t mode);
 
-PI_EXTERN pi_gpio_direction_t
-pi_gpio_get_direction(pi_gpio_handle_t *handle);
+PI_EXTERN pi_gpio_mode_t
+pi_gpio_get_mode(pi_gpio_handle_t *handle);
 
 PI_EXTERN void
 pi_gpio_set_pull(pi_gpio_handle_t *handle, pi_gpio_pull_t pull);
@@ -140,7 +146,7 @@ pi_gpio_release(pi_gpio_handle_t* handle);
  */
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_listener_claim(pi_gpio_pin_t gpio);
+pi_gpio_listener_claim(pi_gpio_pin_t pin);
 
 PI_EXTERN int
 pi_gpio_listen(pi_gpio_handle_t *listener, pi_gpio_edge_t edge);

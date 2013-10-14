@@ -104,8 +104,8 @@ pi_gpio_teardown(pi_closure_t *closure) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t gpio) {
-  return pi_gpio_claim_with_args(closure, gpio, PI_DIR_IN, PI_PULL_NONE);
+pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t pin) {
+  return pi_gpio_claim_with_args(closure, pin, PI_GPIO_MODE_INPUT, PI_GPIO_PULL_NONE);
 }
 
 /*
@@ -113,8 +113,8 @@ pi_gpio_claim(pi_closure_t *closure, pi_gpio_pin_t gpio) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_pull_t pull) {
-  return pi_gpio_claim_with_args(closure, gpio, PI_DIR_IN, pull);
+pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t pin, pi_gpio_pull_t pull) {
+  return pi_gpio_claim_with_args(closure, pin, PI_GPIO_MODE_INPUT, pull);
 }
 
 /*
@@ -122,8 +122,8 @@ pi_gpio_claim_input(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_pull_t pu
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_value_t value) {
-  pi_gpio_handle_t *handle = pi_gpio_claim_with_args(closure, gpio, PI_DIR_OUT, PI_PULL_NONE);
+pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t pin, pi_gpio_value_t value) {
+  pi_gpio_handle_t *handle = pi_gpio_claim_with_args(closure, pin, PI_GPIO_MODE_OUTPUT, PI_GPIO_PULL_NONE);
   pi_gpio_write(handle, value);
   return handle;
 }
@@ -133,45 +133,46 @@ pi_gpio_claim_output(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_value_t 
  */
 
 pi_gpio_handle_t*
-pi_gpio_claim_with_args(pi_closure_t *closure, pi_gpio_pin_t gpio, pi_gpio_direction_t direction, pi_gpio_pull_t pull) {
-  debug("(%i)", gpio);
+pi_gpio_claim_with_args(pi_closure_t *closure, pi_gpio_pin_t pin, pi_gpio_mode_t mode, pi_gpio_pull_t pull) {
+  debug("(%i)", pin);
   pi_gpio_handle_t *handle = malloc(sizeof(pi_gpio_handle_t));
   handle->closure = closure;
-  handle->gpio = gpio;
+  handle->method = PI_GPIO_METHOD_MMAP;
+  handle->pin = pin;
   handle->error = 0;
   pi_gpio_set_pull(handle, pull);
-  pi_gpio_set_direction(handle, direction);
+  pi_gpio_set_mode(handle, mode);
   return handle;
 }
 
 /*
- * Set direction of a claimed pin. Usually invoked automatically.
+ * Set mode of a claimed pin. Usually invoked automatically.
  */
 
 void
-pi_gpio_set_direction(pi_gpio_handle_t *handle, pi_gpio_direction_t direction) {
+pi_gpio_set_mode(pi_gpio_handle_t *handle, pi_gpio_mode_t mode) {
   volatile uint32_t *gpio_map = handle->closure->gpio_map;
-  int gpio = handle->gpio;
-  int offset = FSEL_OFFSET + (gpio / 10);
-  int shift = (gpio % 10) * 3;
-  debug("(%i) %s", gpio, direction == PI_DIR_OUT ? "out": "in");
-  *(gpio_map + offset) = (*(gpio_map + offset) & ~(7 << shift)) | (direction << shift);
+  int pin = handle->pin;
+  int offset = FSEL_OFFSET + (pin / 10);
+  int shift = (pin % 10) * 3;
+  debug("(%i) %s", pin, mode == PI_GPIO_MODE_OUTPUT ? "out": "in");
+  *(gpio_map + offset) = (*(gpio_map + offset) & ~(7 << shift)) | (mode << shift);
 }
 
 /*
- * Get direction of a claimed pin.
+ * Get mode of a claimed pin.
  */
 
-pi_gpio_direction_t
-pi_gpio_get_direction(pi_gpio_handle_t *handle) {
+pi_gpio_mode_t
+pi_gpio_get_mode(pi_gpio_handle_t *handle) {
   volatile uint32_t *gpio_map = handle->closure->gpio_map;
-  int gpio = handle->gpio;
-  int offset = FSEL_OFFSET + (gpio / 10);
-  int shift = (gpio % 10) * 3;
+  int pin = handle->pin;
+  int offset = FSEL_OFFSET + (pin / 10);
+  int shift = (pin % 10) * 3;
   int value = *(gpio_map + offset);
   value >>= shift;
   value &= 7;
-  return value == 0 ? PI_DIR_IN : PI_DIR_OUT;
+  return value == 0 ? PI_GPIO_MODE_INPUT : PI_GPIO_MODE_OUTPUT;
 }
 
 /*
@@ -181,18 +182,18 @@ pi_gpio_get_direction(pi_gpio_handle_t *handle) {
 void
 pi_gpio_set_pull(pi_gpio_handle_t *handle, pi_gpio_pull_t pull) {
   volatile uint32_t *gpio_map = handle->closure->gpio_map;
-  int gpio = handle->gpio;
-  int offset = PULLUPDNCLK_OFFSET + (gpio / 32);
-  int shift = (gpio % 32);
+  int pin = handle->pin;
+  int offset = PULLUPDNCLK_OFFSET + (pin / 32);
+  int shift = (pin % 32);
 
   switch (pull) {
-    case PI_PULL_DOWN:
-    case PI_PULL_UP:
-      debug("(%i) %s", gpio, pull == PI_PULL_UP ? "up" : "down");
+    case PI_GPIO_PULL_DOWN:
+    case PI_GPIO_PULL_UP:
+      debug("(%i) %s", pin, pull == PI_GPIO_PULL_UP ? "up" : "down");
       *(gpio_map + PULLUPDN_OFFSET) = (*(gpio_map + PULLUPDN_OFFSET) & ~3) | pull;
       break;
     default:
-      debug("(%i) none", gpio);
+      debug("(%i) none", pin);
       *(gpio_map + PULLUPDN_OFFSET) &= ~3;
       break;
   }
@@ -211,9 +212,9 @@ pi_gpio_set_pull(pi_gpio_handle_t *handle, pi_gpio_pull_t pull) {
 pi_gpio_value_t
 pi_gpio_read(pi_gpio_handle_t *handle) {
   volatile uint32_t *gpio_map = handle->closure->gpio_map;
-  int gpio = handle->gpio;
-  int offset = PINLEVEL_OFFSET + (gpio / 32);
-  int mask = (1 << gpio % 32);
+  int pin = handle->pin;
+  int offset = PINLEVEL_OFFSET + (pin / 32);
+  int mask = (1 << pin % 32);
   int value = *(gpio_map + offset) & mask;
   return value == 0 ? PI_GPIO_LOW : PI_GPIO_HIGH;
 }
@@ -225,19 +226,19 @@ pi_gpio_read(pi_gpio_handle_t *handle) {
 int
 pi_gpio_write(pi_gpio_handle_t *handle, pi_gpio_value_t value) {
   volatile uint32_t *gpio_map = handle->closure->gpio_map;
-  pi_gpio_pin_t gpio = handle->gpio;
-  int shift = (gpio % 32);
+  int pin = handle->pin;
+  int shift = (pin % 32);
   int offset;
 
   switch (value) {
     case PI_GPIO_HIGH:
-      debug("(%i) PI_GPIO_HIGH", gpio);
-      offset = SET_OFFSET + (gpio / 32);
+      debug("(%i) PI_GPIO_HIGH", pin);
+      offset = SET_OFFSET + (pin / 32);
       break;
     case PI_GPIO_LOW:
     default:
-      debug("(%i) PI_GPIO_LOW", gpio);
-      offset = CLR_OFFSET + (gpio / 32);
+      debug("(%i) PI_GPIO_LOW", pin);
+      offset = CLR_OFFSET + (pin / 32);
       break;
   }
 
@@ -251,11 +252,11 @@ pi_gpio_write(pi_gpio_handle_t *handle, pi_gpio_value_t value) {
 
 int
 pi_gpio_release(pi_gpio_handle_t *handle) {
-  debug("(%i)", handle->gpio);
-  pi_gpio_direction_t direction = pi_gpio_get_direction(handle);
+  debug("(%i)", handle->pin);
+  pi_gpio_mode_t mode = pi_gpio_get_mode(handle);
 
-  if (direction == PI_DIR_OUT) {
-    pi_gpio_set_direction(handle, PI_DIR_IN);
+  if (mode == PI_GPIO_MODE_OUTPUT) {
+    pi_gpio_set_mode(handle, PI_GPIO_MODE_INPUT);
   }
 
   // jik ?
