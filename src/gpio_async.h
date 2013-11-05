@@ -10,6 +10,7 @@
  */
 
 #include <node.h>
+#include <uv.h>
 
 /*!
  * Source controlled includes
@@ -119,7 +120,7 @@ class PinClaimWorker : public PinWorker {
         GPIO *gpio
       , NanCallback *callback
       , pi_gpio_pin_t pin
-      , pi_gpio_direction_t direction
+      , pi_gpio_mode_t mode
       , pi_gpio_pull_t pull
     );
 
@@ -127,7 +128,7 @@ class PinClaimWorker : public PinWorker {
     virtual void Execute();
 
   private:
-    pi_gpio_direction_t direction;
+    pi_gpio_mode_t mode;
     pi_gpio_pull_t pull;
 };
 
@@ -191,6 +192,34 @@ class PinWriteWorker : public PinWorker {
 
   private:
     pi_gpio_value_t value;
+};
+
+class PinAddListenerWorker : public PinWorker {
+  public:
+    PinAddListenerWorker(
+        GPIO* gpio
+      , NanCallback *callback
+      , pi_gpio_pin_t pin
+    );
+
+    virtual ~PinAddListenerWorker();
+    virtual void Execute();
+
+  private:
+    uv_async_t async;
+
+};
+
+class PinRemoveListenerWorker : public PinWorker {
+  public:
+    PinRemoveListenerWorker(
+        GPIO* gpio
+      , NanCallback *callback
+      , pi_gpio_pin_t pin
+    );
+
+    virtual ~PinRemoveListenerWorker();
+    virtual void Execute();
 };
 
 } // end namespace

@@ -5,7 +5,8 @@
       "sources" : [
         "src/pidaeus.cc", 
         "src/gpio.cc",
-        "src/gpio_async.cc"
+        "src/gpio_async.cc",
+        "src/gpio_listener.cc"
       ],
       "dependencies" : [
         "deps/libpi/libpi.gyp:pi"

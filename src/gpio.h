@@ -11,6 +11,8 @@
 
 #include <node.h>
 #include <string>
+#include <queue>
+#include <uv.h>
 #include <v8.h>
 
 /*!
@@ -19,6 +21,9 @@
 
 #include <pi.h>
 #include "nan.h"
+
+
+#include "gpio_listener.h"
 
 /*!
  * Max pins
@@ -117,21 +122,22 @@ class GPIO: public node::ObjectWrap {
     // native bridges
     GPIOStatus* NativeSetup();
     GPIOStatus* NativeTeardown();
-
-    GPIOStatus* NativePinClaim(
-        pi_gpio_pin_t pin
-      , pi_gpio_direction_t direction
-      , pi_gpio_pull_t pull
-    );
-
+    GPIOStatus* NativePinClaim(pi_gpio_pin_t pin, pi_gpio_mode_t mode, pi_gpio_pull_t pull);
     GPIOStatus* NativePinRelease(pi_gpio_pin_t pin);
     GPIOStatus* NativePinRead(pi_gpio_pin_t pin, pi_gpio_value_t& value);
     GPIOStatus* NativePinWrite(pi_gpio_pin_t pin, pi_gpio_value_t value);
+    GPIOStatus* NativePinAddListener(pi_gpio_pin_t pin);
+    GPIOStatus* NativePinRemoveListener(pi_gpio_pin_t pin);
 
     // bridge variables
+    bool active;
     pi_closure_t *closure;
     pi_gpio_handle_t *pins[PI_MAX_PINS];
-    bool active;
+
+    // pin listening
+    GpioListener *listeners[PI_MAX_PINS];
+    NanCallback *pin_listener;
+    GpioListenerQueue *listener_queue;
 
     // cpp (de)construct methods
     GPIO ();
@@ -147,10 +153,16 @@ class GPIO: public node::ObjectWrap {
     static NAN_METHOD(PinRelease);
     static NAN_METHOD(PinRead);
     static NAN_METHOD(PinWrite);
+    static NAN_METHOD(PinWriteSync);
+    static NAN_METHOD(PinAddListener);
+    static NAN_METHOD(PinRemoveListener);
 
-    /*
-    static NAN_METHOD(PinStat);
-    */
+    // getters/setters
+    static NAN_GETTER(GetPinListener);
+    static NAN_SETTER(SetPinListener);
+
+    // pin listening
+    static void EmitPinValue(uv_async_t *async, int status);
 };
 
 } // end namespace

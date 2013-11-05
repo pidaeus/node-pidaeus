@@ -3,6 +3,7 @@
  */
 
 #include <node.h>
+#include <uv.h>
 
 /*!
  * Local includes
@@ -70,17 +71,17 @@ PinClaimWorker::PinClaimWorker(
     GPIO *gpio
   , NanCallback *callback
   , pi_gpio_pin_t pin
-  , pi_gpio_direction_t direction
+  , pi_gpio_mode_t mode
   , pi_gpio_pull_t pull
 ) : PinWorker(gpio, callback, pin)
-  , direction(direction)
+  , mode(mode)
   , pull(pull)
 {};
 
 PinClaimWorker::~PinClaimWorker() {};
 
 void PinClaimWorker::Execute() {
-  SetStatus(gpio->NativePinClaim(pin, direction, pull));
+  SetStatus(gpio->NativePinClaim(pin, mode, pull));
 }
 
 /*!
@@ -145,6 +146,40 @@ PinWriteWorker::~PinWriteWorker() {};
 
 void PinWriteWorker::Execute() {
   SetStatus(gpio->NativePinWrite(pin, value));
+}
+
+/*!
+ *
+ */
+
+PinAddListenerWorker::PinAddListenerWorker(
+    GPIO *gpio
+  , NanCallback *callback
+  , pi_gpio_pin_t pin
+) : PinWorker(gpio, callback, pin)
+{};
+
+PinAddListenerWorker::~PinAddListenerWorker() {};
+
+void PinAddListenerWorker::Execute() {
+  SetStatus(gpio->NativePinAddListener(pin));
+}
+
+/*!
+ *
+ */
+
+PinRemoveListenerWorker::PinRemoveListenerWorker(
+    GPIO *gpio
+  , NanCallback *callback
+  , pi_gpio_pin_t pin
+) : PinWorker(gpio, callback, pin)
+{};
+
+PinRemoveListenerWorker::~PinRemoveListenerWorker() {};
+
+void PinRemoveListenerWorker::Execute() {
+  SetStatus(gpio->NativePinRemoveListener(pin));
 }
 
 } // end namespace
