@@ -146,10 +146,10 @@ pi_gpio_release(pi_gpio_handle_t* handle);
  */
 
 PI_EXTERN pi_gpio_handle_t*
-pi_gpio_listener_claim(pi_gpio_pin_t pin);
+pi_gpio_listener_claim(pi_gpio_pin_t pin, pi_gpio_edge_t edge);
 
 PI_EXTERN int
-pi_gpio_listen(pi_gpio_handle_t *listener, pi_gpio_edge_t edge);
+pi_gpio_listen(pi_gpio_handle_t *listener);
 
 PI_EXTERN void
 pi_gpio_listener_release(pi_gpio_handle_t *listener);

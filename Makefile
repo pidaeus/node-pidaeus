@@ -1,5 +1,5 @@
 
-LIBPI_V = "0.3.0"
+LIBPI_V = "0.3.1"
 
 TESTS = test/*.js
 REPORTER = spec

@@ -8,6 +8,7 @@
 #define PIN_COIL_B1 23
 #define PIN_COIL_B2 24
 
+pi_closure_t *closure;
 pi_gpio_handle_t *pin_enable;
 pi_gpio_handle_t *pin_coil_a1;
 pi_gpio_handle_t *pin_coil_a2;
@@ -56,7 +57,8 @@ void move_backward(unsigned long ms, int steps) {
 }
 
 int main() {
-  pi_gpio_setup();
+  closure = pi_default_closure();
+  pi_gpio_setup(closure);
 
   pi_gpio_pin_t gpioe = PIN_ENABLE;
   pi_gpio_pin_t gpioa1 = PIN_COIL_A1;
@@ -64,11 +66,11 @@ int main() {
   pi_gpio_pin_t gpiob1 = PIN_COIL_B1;
   pi_gpio_pin_t gpiob2 = PIN_COIL_B2;
 
-  pin_enable = pi_gpio_claim_output(gpioe, PI_GPIO_HIGH);
-  pin_coil_a1 = pi_gpio_claim_output(gpioa1, PI_GPIO_LOW);
-  pin_coil_a2 = pi_gpio_claim_output(gpioa2, PI_GPIO_LOW);
-  pin_coil_b1 = pi_gpio_claim_output(gpiob1, PI_GPIO_LOW);
-  pin_coil_b2 = pi_gpio_claim_output(gpiob2, PI_GPIO_LOW);
+  pin_enable = pi_gpio_claim_output(closure, gpioe, PI_GPIO_HIGH);
+  pin_coil_a1 = pi_gpio_claim_output(closure, gpioa1, PI_GPIO_LOW);
+  pin_coil_a2 = pi_gpio_claim_output(closure, gpioa2, PI_GPIO_LOW);
+  pin_coil_b1 = pi_gpio_claim_output(closure, gpiob1, PI_GPIO_LOW);
+  pin_coil_b2 = pi_gpio_claim_output(closure, gpiob2, PI_GPIO_LOW);
 
   move_forward(5, 356);
   move_backward(30, 45);
@@ -79,7 +81,7 @@ int main() {
   pi_gpio_release(pin_coil_b1);
   pi_gpio_release(pin_coil_b2);
 
-  pi_gpio_teardown();
+  pi_gpio_teardown(closure);
 
   return 0;
 }

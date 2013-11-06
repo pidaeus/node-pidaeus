@@ -46,5 +46,32 @@
       ]
     },
 
+    {
+      'target_name': 'benchmark',
+      'type': 'executable',
+      'dependencies': [ 'pi' ],
+      'sources': [
+        'examples/benchmark/main.c'
+      ]
+    },
+
+    {
+      'target_name': 'led_toggle',
+      'type': 'executable',
+      'dependencies': [ 'pi' ],
+      'sources': [
+        'examples/led_toggle/main.c'
+      ]
+    },
+
+    {
+      'target_name': 'stepper',
+      'type': 'executable',
+      'dependencies': [ 'pi' ],
+      'sources': [
+        'examples/stepper/main.c'
+      ]
+    },
+
   ]
 }

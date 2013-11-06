@@ -141,7 +141,7 @@ pi__gpio_set_edge(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
  */
 
 pi_gpio_handle_t*
-pi_gpio_listener_claim(pi_gpio_pin_t pin) {
+pi_gpio_listener_claim(pi_gpio_pin_t pin, pi_gpio_edge_t edge) {
   debug("(%i)", (int)pin);
   pi_gpio_handle_t *listener = malloc(sizeof(pi_gpio_handle_t));
   listener->method = PI_GPIO_METHOD_SYSFS;
@@ -150,6 +150,7 @@ pi_gpio_listener_claim(pi_gpio_pin_t pin) {
   int r_exp = pi__gpio_export(listener);
   if (r_exp < 0) return listener;
   pi__gpio_set_mode(listener, PI_GPIO_MODE_INPUT);
+  pi__gpio_set_edge(listener, edge);
   return listener;
 }
 
@@ -170,11 +171,9 @@ pi_gpio_listener_release(pi_gpio_handle_t* listener) {
  */
 
 int
-pi_gpio_listen(pi_gpio_handle_t *listener, pi_gpio_edge_t edge) {
+pi_gpio_listen(pi_gpio_handle_t *listener) {
   char path[MAX_BUF];
   char value[16];
-
-  pi__gpio_set_edge(listener, edge);
 
   snprintf(path, sizeof(path), SYSFS_GPIO_DIR "/gpio%d/value", listener->pin);
   int fd = open(path, O_RDONLY);

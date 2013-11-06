@@ -4,6 +4,8 @@
 
 #include "pi.h"
 
+#define GPIO_LED 18
+
 struct timespec diff(struct timespec start, struct timespec end) {
   struct timespec temp;
 
@@ -19,16 +21,17 @@ struct timespec diff(struct timespec start, struct timespec end) {
 }
 
 int main() {
-  pi_gpio_setup();
+  pi_closure_t *closure = pi_default_closure();
+  pi_gpio_setup(closure);
 
   struct timespec start, end;
-  pi_gpio_pin_t led = 18;
-  pi_gpio_handle_t *handle = pi_gpio_claim_output(led, PI_GPIO_LOW);
+  pi_gpio_pin_t led = GPIO_LED;
+  pi_gpio_handle_t *handle = pi_gpio_claim_output(closure, led, PI_GPIO_LOW);
   int i;
 
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 
-  for (i = 0; i < 500000; i++) {
+  for (i = 0; i < 5000000; i++) {
     pi_gpio_write(handle, PI_GPIO_HIGH);
     pi_gpio_write(handle, PI_GPIO_LOW);
   }
@@ -36,7 +39,7 @@ int main() {
   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end);
 
   pi_gpio_release(handle);
-  pi_gpio_teardown();
+  pi_gpio_teardown(closure);
 
   struct timespec timediff = diff(start, end);
   double seconds = ((timediff.tv_sec * 1e9) + timediff.tv_nsec) / 1e9;
